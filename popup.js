@@ -147,7 +147,7 @@ async function refresh() {
       return;
     }
     const state = await pageCall('snapshot');
-    if (state?.version === '0.3.1' && state.ready) {
+    if (state?.version === '0.4.0' && state.ready) {
       connected = true;
       render(state);
     } else {

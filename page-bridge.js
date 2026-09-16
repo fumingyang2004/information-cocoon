@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  if (root.JuyaPanel?.version === '0.3.1') return;
+  if (root.JuyaPanel?.version === '0.4.0') return;
   const nativeConsole = root.console;
   const logs = [];
   let sequence = 0;
@@ -68,11 +68,12 @@
     const samePage = report?.url === location.href;
     const segments = samePage ? report.segments : [];
     return {
-      ready: !!demo(), version: '0.3.1', supported: supported(),
+      ready: !!demo(), version: '0.4.0', supported: supported(),
       url: location.href,
       title: root.__INITIAL_STATE__?.videoData?.title || document.title,
       active: samePage && !!report.active, starting, sampling, ocrRunning, ocrAllowed,
-      source: samePage ? (report.comment.sourceKind === 'pinned-with-replies' ? '置顶正文 + 作者回复'
+      source: samePage ? (report.comment.sourceKind === 'ocr-visual' ? '视频章节条 OCR'
+        : report.comment.sourceKind === 'pinned-with-replies' ? '置顶正文 + 作者回复'
         : report.comment.rootRpid ? '置顶下的作者回复' : '置顶评论') : '',
       total: segments.length, keep: segments.filter(s => s.keep).length,
       jumps: samePage ? report.events.filter(e => e.type === 'SEEK_CONFIRMED').length : 0,
@@ -129,7 +130,7 @@
     } finally { ocrRunning = false; sampling = false; }
   }
   root.JuyaPanel = {
-    version: '0.3.1', snapshot,
+    version: '0.4.0', snapshot,
     finishInstall() {
       delete root.__JUYA_DEMO_MANUAL_START__;
       delete root.__JUYA_DEMO_LOGGER__;

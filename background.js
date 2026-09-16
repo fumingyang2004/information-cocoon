@@ -1,7 +1,7 @@
 /* The persisted master switch owns automatic startup across tabs and reloads. */
 importScripts('keyword-config.js');
 const SWITCH_KEY = 'juyaGlobalEnabled';
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 const VIDEO_URL = /^https:\/\/www\.bilibili\.com\/video\/BV[\w]+/i;
 const inFlight = new Map();
 

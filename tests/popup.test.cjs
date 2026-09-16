@@ -70,7 +70,7 @@ function makeBridge() {
   return {
     calls, get words() { return words; },
     finishInstall() { return this.snapshot(); },
-    snapshot() { return { ready: true, version: '0.3.1', supported: true, title: 'Juya sample', active: true,
+    snapshot() { return { ready: true, version: '0.4.0', supported: true, title: 'Juya sample', active: true,
       total: 25, keep: words.includes('Tibo') ? 2 : 14, jumps: 0,
       ocrAllowed: false, ocrRunning: false, logs: [], source: '置顶正文 + 作者回复' }; },
     command(action, value) {

@@ -33,9 +33,10 @@
     trimX: 2 / 32,
     trimTop: 1 / 32,
     trimBottom: 5 / 32,
-    fuzzyMinKeywordLength: 6,
+    fuzzyMinKeywordLength: 5,
     fuzzyMaxDistance: 1
   });
+  const OCR_FALLBACK = Object.freeze({ minSkipConfidence: 80, minReadableLetters: 4 });
 
   function parseTimeline(text, duration, { minRows = 2 } = {}) {
     if (!Number.isFinite(duration) || duration <= 0) throw new Error('视频总时长尚未就绪');
@@ -225,10 +226,13 @@
       const found = [];
       const expanders = [];
       let possibleReplies = false;
+      let knownEmpty = true;
+      let matchedThreads = 0;
       for (const renderer of pinnedCandidates(doc)) {
         const data = renderer.__data;
         const rpid = String(data?.rpid_str ?? data?.rpid ?? '');
         if (!rpid || !pinned.some(comment => comment.rpid === rpid)) continue;
+        matchedThreads++;
         const thread = renderer.getRootNode().host;
         const replies = thread?.tagName === 'BILI-COMMENT-THREAD-RENDERER'
           ? thread.shadowRoot.querySelector('bili-comment-replies-renderer') : null;
@@ -244,12 +248,14 @@
         // A continuation may contain just one item; the original reply-only fallback still needs two.
         found.push(...replyTimelines(entries, owner, rpid, duration, { minRows: supplement ? 1 : 2 }));
         const count = Number(data.rcount ?? data.count);
+        if (count !== 0 || entries.length) knownEmpty = false;
         const loaded = new Set(entries.map(entry => String(entry.data?.rpid_str ?? entry.data?.rpid ?? ''))).size;
         if (data.reply_control?.up_reply !== false && (!Number.isFinite(count) || loaded < count)) {
           possibleReplies = true;
         }
       }
       if (found.length) return found;
+      if (matchedThreads && knownEmpty && !expanders.length) return [];
       // Do not add a 12-second delay when the complete cached thread has no author timeline.
       if (supplement && !possibleReplies) return [];
       // Expand only the pinned thread's reply list; full text comes from reply data.
@@ -592,23 +598,75 @@
   function matchOcrKeywords(text, keywords = activeKeywords, options = {}) {
     const normalized = normalizeOcrText(text).toLowerCase();
     const tokens = normalized.match(/[a-z0-9]+/g) || [];
+    const candidates = [...tokens, ...tokens.slice(0, -1).map((token, index) => token + tokens[index + 1])];
     const fuzzyMinLength = options.fuzzyMinKeywordLength ?? OCR_EXPERIMENT.fuzzyMinKeywordLength;
     const fuzzyMaxDistance = options.fuzzyMaxDistance ?? OCR_EXPERIMENT.fuzzyMaxDistance;
     const matches = [];
     for (const keyword of keywords) {
       const needle = keyword.toLowerCase();
-      if (normalized.includes(needle)) {
+      if (normalized.includes(needle) || candidates.includes(needle)) {
         matches.push({ keyword, mode: 'exact', token: keyword, distance: 0 });
         continue;
       }
       if (needle.length < fuzzyMinLength) continue;
-      const candidates = tokens.filter(token => Math.abs(token.length - needle.length) <= fuzzyMaxDistance)
+      const close = candidates.filter(token => Math.abs(token.length - needle.length) <= fuzzyMaxDistance)
         .map(token => ({ token, distance: editDistance(token, needle) }))
         .filter(candidate => candidate.distance <= fuzzyMaxDistance)
         .sort((a, b) => a.distance - b.distance);
-      if (candidates.length) matches.push({ keyword, mode: 'fuzzy', ...candidates[0] });
+      if (close.length) matches.push({ keyword, mode: 'fuzzy', ...close[0] });
     }
     return matches;
+  }
+
+  // Missing or uncertain OCR text must never become an automatic SKIP.
+  function classifyOcrSegment(segment, keywords = activeKeywords, options = {}) {
+    const title = normalizeOcrText(segment.ocrText ?? segment.title);
+    const matches = matchOcrKeywords(title, keywords, options);
+    const confidence = Number.isFinite(segment.confidence) ? segment.confidence : null;
+    const readableLetters = (title.match(/[a-z]/gi) || []).length;
+    const certainNonMatch = confidence !== null
+      && confidence >= (options.minSkipConfidence ?? OCR_FALLBACK.minSkipConfidence)
+      && readableLetters >= (options.minReadableLetters ?? OCR_FALLBACK.minReadableLetters);
+    const reason = matches.length ? 'keyword' : certainNonMatch ? 'unmatched' : 'uncertain-ocr';
+    return { title: title || '[未识别]', ocrText: title, confidence,
+      keep: reason !== 'unmatched', keywords: matches.map(match => match.keyword), matches,
+      reviewRequired: reason === 'uncertain-ocr' || matches.some(match => match.mode === 'fuzzy'),
+      reason };
+  }
+
+  function ocrFallbackSegments(result, duration, keywords = activeKeywords, options = {}) {
+    const visual = result?.visual;
+    const rows = result?.rows;
+    if (!visual?.reliable || !Array.isArray(rows) || rows.length !== visual.segments?.length
+      || rows.length < 2 || !Number.isFinite(duration) || duration <= 0) {
+      throw new Error('OCR 章节几何或识别结果不完整，停止自动跳段');
+    }
+    const segments = visual.segments.map((segment, index) => {
+      const row = rows[index];
+      if (row.index !== index || !Number.isFinite(segment.start) || !Number.isFinite(segment.end)
+        || segment.start < 0 || segment.end <= segment.start
+        || (index && Math.abs(segment.start - visual.segments[index - 1].end) > 0.05)) {
+        throw new Error('OCR 章节边界不连续，停止自动跳段');
+      }
+      return { ...segment, ...classifyOcrSegment(row, keywords, options) };
+    });
+    if (Math.abs(segments[0].start) > 0.05 || Math.abs(segments.at(-1).end - duration) > 1) {
+      throw new Error('OCR 章节未覆盖整条视频，停止自动跳段');
+    }
+    if (!segments.some(segment => segment.keywords.length)) {
+      throw new Error('OCR 没有识别出任何关注关键词，停止自动跳段');
+    }
+    return segments;
+  }
+
+  function sameVisualBoundaries(left, right, tolerancePx = VISUAL_NAV.mergeGapPx) {
+    return !!left?.reliable && !!right?.reliable
+      && Number.isInteger(left.width) && left.width > 0
+      && Number.isInteger(left.height) && left.height > 0
+      && left.width === right.width
+      && left.height === right.height && left.boundariesPx?.length === right.boundariesPx?.length
+      && left.boundariesPx?.length >= 3
+      && left.boundariesPx.every((x, index) => Math.abs(x - right.boundariesPx[index]) <= tolerancePx);
   }
 
   let tesseractLoadPromise;
@@ -786,7 +844,8 @@
 
   const api = { KEYWORDS, VISUAL_NAV, OCR_EXPERIMENT, parseTimeline, skipTarget, deepAll, domText, pinnedCandidates, readPinned, findVideo,
     captureNavigationStrip, detectVisualBoundaries, mergeVisualGeometries, cropNavigationBlocks, repairPlayheadInStrip, prepareOcrBlock,
-    normalizeOcrText, editDistance, matchOcrKeywords, loadTesseract, compareTimelines,
+    normalizeOcrText, editDistance, matchOcrKeywords, classifyOcrSegment, ocrFallbackSegments, sameVisualBoundaries,
+    loadTesseract, compareTimelines,
     seekVideoFrame, attach,
     juyaOwner, replyTimelines, readPinnedReplies, mergePinnedTimeline };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
@@ -811,10 +870,11 @@
         return true;
       });
       const changes = report?.segments.map(segment => {
+        if (report.comment.sourceKind === 'ocr-visual') return classifyOcrSegment(segment, next);
         const keywords = next.filter(word => segment.title.toLowerCase().includes(word.toLowerCase()));
         return { keywords, keep: keywords.length > 0 };
       });
-      if (controller?.active && changes && !changes.some(change => change.keep)) {
+      if (controller?.active && changes && !changes.some(change => change.keywords.length)) {
         throw new Error('当前视频没有匹配新集合的资讯；请停止跳段后再切换，或添加匹配词');
       }
       if (JSON.stringify(activeKeywords) === JSON.stringify(next)) return [...activeKeywords];
@@ -1035,7 +1095,7 @@
         warnings.push('OCR did not find any keyword; do not enable automatic skipping');
       }
       if (fuzzyRows.length) {
-        warnings.push(`${fuzzyRows.length} block(s) use one-edit fuzzy keyword matches and require review`);
+        warnings.push(`${fuzzyRows.length} block(s) use one-edit fuzzy keyword matches; automatic fallback keeps them`);
       }
       const experimentalSegments = visual.segments.map((segment, index) => ({
         ...segment,
@@ -1082,13 +1142,19 @@
       try {
         const owner = juyaOwner(root.__INITIAL_STATE__);
         video = findVideo(document);
-        const pinned = await readPinned(document);
+        const source = video.currentSrc;
+        let pinned = [];
+        try { pinned = await readPinned(document); }
+        catch (error) {
+          if (!error.message.includes('未识别到置顶评论')) throw error;
+          console.warn(TAG, '没有可用的置顶评论，继续尝试视频章节条 OCR');
+        }
         if (run !== generation || page !== identity()) return;
         let parsed = pinned.map(comment => {
           try { return { comment, segments: parseTimeline(comment.text, video.duration) }; }
           catch (error) { console.warn(TAG, error.message); return null; }
         }).filter(Boolean);
-        if (!parsed.length) {
+        if (!parsed.length && pinned.length) {
           console.log(TAG, '置顶正文没有有效时间轴，检查该置顶评论下橘鸦Juya本人的回复');
           parsed = await readPinnedReplies(document, pinned, video.duration, owner,
             () => run === generation && page === identity());
@@ -1108,15 +1174,40 @@
             });
           }
         }
+        if (!parsed.length) {
+          console.log(TAG, '置顶正文和作者回复均无有效时间轴，开始视频章节条 OCR 降级');
+          const samples = [];
+          let visual;
+          for (let attempt = 0; attempt < 3 && !visual; attempt++) {
+            const sample = await this.visualExperimentStable();
+            if (run !== generation || page !== identity() || !video.isConnected || video.currentSrc !== source) return;
+            if (!sample.reliable) throw new Error(`OCR 章节取样不可靠：${sample.warnings.join('；')}`);
+            visual = samples.find(previous => sameVisualBoundaries(previous, sample));
+            samples.push(sample);
+          }
+          if (!visual) throw new Error('OCR 章节边界在三次取样中不一致，停止自动跳段');
+          const ocr = await this.ocrExperiment({ visualResult: visual });
+          if (run !== generation || page !== identity() || !video.isConnected || video.currentSrc !== source) return;
+          const segments = ocrFallbackSegments(ocr, video.duration, activeKeywords);
+          const text = segments.map(segment => `${Math.floor(segment.start / 60).toString().padStart(2, '0')}:${Math.floor(segment.start % 60).toString().padStart(2, '0')} ${segment.title}`).join('\n');
+          parsed = [{ comment: { text, source: 'video navigation strip / Tesseract OCR',
+            sourceKind: 'ocr-visual', author: owner.name, authorMid: String(owner.mid),
+            completeness: '视频章节条多次取样；低置信度区间保留，不作自动跳过' }, segments }];
+          console.log(TAG, 'OCR 降级完成', { blocks: segments.length,
+            matched: segments.filter(segment => segment.keywords.length).length,
+            uncertain: segments.filter(segment => segment.reason === 'uncertain-ocr').length,
+            skipped: segments.filter(segment => !segment.keep).length });
+        }
         if (parsed.length !== 1) throw new Error(`可解析的时间轴来源数量为 ${parsed.length}，需要唯一时间轴`);
         const { comment, segments } = parsed[0];
         if (!segments.some(s => s.keep)) throw new Error('没有任何关键词命中，停止，避免整条视频被跳过');
         report = { url: location.href, title: document.title, capturedAt: new Date().toISOString(),
           duration: video.duration, keywords: [...activeKeywords], comment, segments };
         console.log(TAG, '时间轴来源与全文', comment);
-        console.table(segments.map(s => ({ start: s.start, end: s.end, keep: s.keep, title: s.title, keywords: s.keywords.join(', ') })));
+        console.table(segments.map(s => ({ start: s.start, end: s.end, keep: s.keep,
+          title: s.title, keywords: s.keywords.join(', '),
+          confidence: s.confidence ?? '', reason: s.reason ?? '' })));
         console.log(TAG, '实际播放器', video);
-        const source = video.currentSrc;
         controller = attach(video, segments, { valid: () => video.isConnected && identity() === page && video.currentSrc === source });
         console.log(TAG, '已启用。播放时进入未命中区间将自动跳转。JuyaDemo.stop() 停止；JuyaDemo.testSkip() 做一次真实边界实验。');
         return this.report();

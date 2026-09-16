@@ -24,7 +24,7 @@ function fakePage(url, owner = { name: '橘鸦Juya', mid: 285286947 }) {
       originalUrl: page.url,
       snapshot() {
         if (this.originalUrl !== page.url) { this.active = false; this.lastError = ''; this.originalUrl = page.url; }
-        return { ready: true, version: '0.3.1', url: page.url, supported: true,
+        return { ready: true, version: '0.4.0', url: page.url, supported: true,
           active: this.active, starting: this.starting, lastError: this.lastError,
           keywords: this.keywords };
       },

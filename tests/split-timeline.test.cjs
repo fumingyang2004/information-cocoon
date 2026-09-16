@@ -94,6 +94,74 @@ test('the real page script exposes the player readiness check used by the backgr
   assert.equal(vm.runInContext('!!JuyaDemo?.findVideo(document)', context), true);
 });
 
+test('a pin without an index falls back to OCR and seeks past a clear unmatched block', async () => {
+  const noIndex = { ...pin, content: { message: '广告内容，没有时间轴' }, replies: [], rcount: 0,
+    reply_control: { is_up_top: true, up_reply: false } };
+  const { context, video } = runtime(noIndex, 100);
+  let calls = 0;
+  let samples = 0;
+  const visual = { reliable: true, width: 100, height: 10,
+    boundariesPx: [0, 20, 40, 60, 80, 100],
+    segments: Array.from({ length: 5 }, (_, index) => ({ index, start: index * 20, end: (index + 1) * 20 })) };
+  context.JuyaDemo.visualExperimentStable = async () => { samples++; return visual; };
+  context.JuyaDemo.ocrExperiment = async () => {
+    calls++;
+    return { visual, rows: [
+      { index: 0, title: 'Intro', confidence: 90 },
+      { index: 1, title: 'OpenAl', confidence: 90 },
+      { index: 2, title: 'StepAudio', confidence: 90 },
+      { index: 3, title: 'Claude', confidence: 90 },
+      { index: 4, title: '', confidence: 0 }
+    ] };
+  };
+  context.JuyaPanel.command('start');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(calls, 1);
+  assert.equal(samples, 2);
+  assert.equal(context.JuyaPanel.snapshot().source, '视频章节条 OCR');
+  assert.deepEqual(Array.from(context.JuyaDemo.report().segments, row => row.keep), [false, true, false, true, true]);
+  video.currentTime = 45; video.paused = false; video.emit('timeupdate');
+  assert.equal(video.currentTime, 60);
+  video.emit('seeked');
+  assert.equal(context.JuyaPanel.snapshot().jumps, 1);
+  context.JuyaDemo.setKeywords(['Claude']);
+  assert.equal(context.JuyaDemo.report().segments[4].keep, true, 'uncertain text must remain kept after a keyword change');
+  context.JuyaPanel.command('stop');
+});
+
+test('disagreeing visual samples leave automatic skipping disabled', async () => {
+  const noIndex = { ...pin, content: { message: '广告内容，没有时间轴' }, replies: [], rcount: 0,
+    reply_control: { is_up_top: true, up_reply: false } };
+  const { context } = runtime(noIndex, 100);
+  let samples = 0;
+  let recognitions = 0;
+  context.JuyaDemo.visualExperimentStable = async () => ({ reliable: true, width: 100, height: 10,
+    boundariesPx: [[0, 20, 40, 100], [0, 20, 50, 100], [0, 20, 60, 100]][samples++] });
+  context.JuyaDemo.ocrExperiment = async () => { recognitions++; };
+  context.JuyaPanel.command('start');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(samples, 3);
+  assert.equal(recognitions, 0);
+  assert.match(context.JuyaPanel.snapshot().lastError, /三次取样中不一致/);
+  assert.equal(context.JuyaPanel.snapshot().active, false);
+});
+
+test('turning the switch off during OCR sampling never attaches a seek controller', async () => {
+  const noIndex = { ...pin, content: { message: '广告内容，没有时间轴' }, replies: [], rcount: 0,
+    reply_control: { is_up_top: true, up_reply: false } };
+  const { context } = runtime(noIndex, 100);
+  let release;
+  context.JuyaDemo.visualExperimentStable = () => new Promise(resolve => { release = resolve; });
+  context.JuyaPanel.command('start');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(typeof release, 'function');
+  context.JuyaPanel.command('stop');
+  release({ reliable: true, width: 100, height: 10, boundariesPx: [0, 20, 100] });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(context.JuyaPanel.snapshot().active, false);
+  assert.equal(context.JuyaDemo.report(), null);
+});
+
 test('popup start reaches merge branch, displays source, and uses new SKIP interval (simulated video)', async () => {
   const { context, video } = runtime(pin, 329);
   context.JuyaPanel.command('start');

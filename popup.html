@@ -24,7 +24,7 @@
         </div>
       </details>
     </section>
-    <section class="experiment"><div class="experiment-head"><label><input id="ocr-enabled" type="checkbox" disabled> OCR 实验</label><span class="pill">仅日志</span></div><p>识别视频底部资讯条，结果不用于跳段。取帧时会短暂移动播放位置，然后恢复。</p><button id="ocr-run" disabled>运行一次 OCR</button><span id="ocr-state"></span></section>
+    <section class="experiment"><div class="experiment-head"><label><input id="ocr-enabled" type="checkbox" disabled> 手动 OCR 检查</label><span class="pill">仅日志</span></div><p>评论没有时间轴时，总开关会自动尝试 OCR 降级。此处手动检查只输出日志；取帧时会短暂移动播放位置，然后恢复。</p><button id="ocr-run" disabled>运行一次 OCR</button><span id="ocr-state"></span></section>
     <section class="log-section"><div class="log-head"><h2>运行日志</h2><button id="clear" class="text-button" disabled>清空</button></div><div id="logs" tabindex="0" aria-label="运行日志"><p class="empty">开启后，时间轴与实际跳转会显示在这里。</p></div></section>
   </main>
   <footer>总开关状态会保存 · 刷新或切换视频后自动处理</footer>
