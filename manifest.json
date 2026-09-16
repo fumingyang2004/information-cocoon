@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Juya 资讯跳段",
-  "version": "0.4.0",
-  "description": "优先使用橘鸦Juya评论时间轴；缺失时读取视频章节条 OCR 并谨慎跳段。",
+  "name": "信息茧房",
+  "version": "0.4.1",
+  "description": "为橘鸦Juya的 AI 早报按关键词跳过不感兴趣的资讯，评论索引缺席时尝试 OCR。",
+  "icons": { "240": "imgs/Juya.png" },
   "permissions": ["scripting", "storage", "tabs", "webNavigation"],
   "host_permissions": ["https://www.bilibili.com/*"],
   "background": { "service_worker": "background.js" },
@@ -12,7 +13,8 @@
     "run_at": "document_idle"
   }],
   "action": {
-    "default_title": "Juya 资讯跳段",
+    "default_icon": "imgs/Juya.png",
+    "default_title": "信息茧房",
     "default_popup": "popup.html"
   }
 }

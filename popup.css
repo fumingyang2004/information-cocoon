@@ -28,5 +28,6 @@ footer{flex-shrink:0;padding:10px 20px}
 .master-control input:checked+.switch-track::after{transform:translateX(17px)}
 .master-control input:focus-visible+.switch-track{outline:2px solid #cb803f;outline-offset:3px}
 .master-control input:disabled+.switch-track{opacity:.5}
+.brand{display:block;object-fit:cover;flex:none}
 .master-control strong{display:block;font-size:12px;color:#344254}
 .master-control small{display:block;color:#83909e;font-size:10px;margin-top:2px}
