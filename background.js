@@ -1,7 +1,8 @@
 /* The persisted master switch owns automatic startup across tabs and reloads. */
 importScripts('keyword-config.js');
 const SWITCH_KEY = 'juyaGlobalEnabled';
-const VERSION = '0.4.0';
+const VERSION = '0.4.2';
+const START_STALE_MS = 130000;
 const VIDEO_URL = /^https:\/\/www\.bilibili\.com\/video\/BV[\w]+/i;
 const inFlight = new Map();
 
@@ -28,6 +29,9 @@ async function videoReady(tabId) {
 async function stopTab(tabId) {
   try { await pageCall(tabId, 'command', 'stop'); } catch { /* The page may be navigating. */ }
 }
+async function pageNote(tabId, level, message, details = {}) {
+  try { await pageCall(tabId, 'note', level, message, details); } catch { /* Diagnostics must not block startup. */ }
+}
 async function ensureTab(tabId, retry = false) {
   if (inFlight.has(tabId)) return inFlight.get(tabId);
   const job = (async () => {
@@ -47,7 +51,18 @@ async function ensureTab(tabId, retry = false) {
         state = await pageCall(tabId, 'finishInstall');
       }
       if (!state || state.url !== probe.url) return { status: 'waiting' };
-      if (state.starting || state.sampling || state.ocrRunning) return { status: 'starting' };
+      if (state.starting || state.sampling || state.ocrRunning) {
+        if (state.starting && state.startElapsedMs > START_STALE_MS) {
+          await pageNote(tabId, 'error', '后台检测到陈旧读取任务，准备停止并重试', {
+            startElapsedMs: state.startElapsedMs, phase: state.phase,
+            phaseElapsedMs: state.phaseElapsedMs, thresholdMs: START_STALE_MS
+          });
+          await stopTab(tabId);
+          return { status: 'failed', error: '读取任务超过安全时限，已停止并准备重试' };
+        }
+        return { status: 'starting', phase: state.phase,
+          startElapsedMs: state.startElapsedMs, phaseElapsedMs: state.phaseElapsedMs };
+      }
       const settings = JuyaKeywordConfig.restore(stored[JuyaKeywordConfig.STORAGE_KEY]);
       const words = JuyaKeywordConfig.selected(settings).keywords;
       if (JSON.stringify(state.keywords) !== JSON.stringify(words)) {
@@ -60,14 +75,20 @@ async function ensureTab(tabId, retry = false) {
       }
       if (state.active) return { status: 'active' };
       if (state.lastError && !retry) {
-        const transient = /未识别到置顶评论|视频总时长尚未就绪|已加载的 video|播放器/.test(state.lastError);
+        const transient = /未识别到置顶评论|视频总时长尚未就绪|已加载的 video|播放器|超时|评论.*加载/.test(state.lastError);
         return { status: transient ? 'failed' : 'blocked', error: state.lastError };
       }
       if (!await videoReady(tabId)) return { status: 'waiting' };
       if (!(await chrome.storage.local.get(SWITCH_KEY))[SWITCH_KEY]) return { status: 'off' };
+      await pageNote(tabId, 'log', '后台请求启动读取', { retry, url: probe.url,
+        keywords: words, previousPhase: state.phase, previousError: state.lastError || '' });
       state = await pageCall(tabId, 'command', 'start');
       return { status: state?.active ? 'active' : 'starting' };
-    } catch (error) { return { status: 'waiting', error: error.message }; }
+    } catch (error) {
+      await pageNote(tabId, 'warn', '后台检查未完成，将继续轮询', {
+        message: error.message, retry, type: error.name });
+      return { status: 'waiting', error: error.message };
+    }
   })();
   inFlight.set(tabId, job);
   try { return await job; } finally { inFlight.delete(tabId); }

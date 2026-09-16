@@ -1,6 +1,8 @@
 (function (root) {
   'use strict';
-  if (root.JuyaPanel?.version === '0.4.0') return;
+  const BRIDGE_VERSION = '0.4.2';
+  const START_TIMEOUT_MS = root.__JUYA_START_TIMEOUT_MS__ ?? 120000;
+  if (root.JuyaPanel?.version === BRIDGE_VERSION) return;
   const nativeConsole = root.console;
   const logs = [];
   let sequence = 0;
@@ -13,6 +15,10 @@
   let ocrSummary = null;
   let lastError = '';
   let startRun = 0;
+  let phase = 'idle';
+  let phaseDetails = {};
+  let phaseStartedAt = Date.now();
+  let startStartedAt = 0;
   const demo = () => root.JuyaDemo;
   function identity() {
     return `${location.pathname}${location.search}|${root.__INITIAL_STATE__?.videoData?.cid ?? root.__INITIAL_STATE__?.cid ?? ''}`;
@@ -35,7 +41,13 @@
   function record(level, ...args) {
     const text = args.filter(a => a !== '[JuyaDemo]').map(serialize).join(' ').slice(0, 5000);
     logs.push({ id: ++sequence, time: new Date().toLocaleTimeString('zh-CN', { hour12: false }), level, text });
-    if (logs.length > 300) logs.shift();
+    if (logs.length > 500) logs.shift();
+  }
+  function setPhase(next, details = {}, level = 'log') {
+    phase = next;
+    phaseDetails = details && typeof details === 'object' ? details : { detail: details };
+    phaseStartedAt = Date.now();
+    record(level, '运行阶段', { phase, ...phaseDetails });
   }
   const logger = {};
   for (const level of ['log', 'warn', 'error']) logger[level] = (...args) => {
@@ -51,7 +63,11 @@
       demo()?.stop();
       desiredActive = false;
       starting = false;
+      startStartedAt = 0;
       startRun++;
+      phase = 'idle';
+      phaseDetails = {};
+      phaseStartedAt = Date.now();
       page = identity();
       ocrSummary = null;
       lastError = '';
@@ -68,10 +84,13 @@
     const samePage = report?.url === location.href;
     const segments = samePage ? report.segments : [];
     return {
-      ready: !!demo(), version: '0.4.0', supported: supported(),
+      ready: !!demo(), version: BRIDGE_VERSION, supported: supported(),
       url: location.href,
       title: root.__INITIAL_STATE__?.videoData?.title || document.title,
       active: samePage && !!report.active, starting, sampling, ocrRunning, ocrAllowed,
+      phase, phaseDetails,
+      phaseElapsedMs: Math.max(0, Date.now() - phaseStartedAt),
+      startElapsedMs: starting && startStartedAt ? Math.max(0, Date.now() - startStartedAt) : 0,
       source: samePage ? (report.comment.sourceKind === 'ocr-visual' ? '视频章节条 OCR'
         : report.comment.sourceKind === 'pinned-with-replies' ? '置顶正文 + 作者回复'
         : report.comment.rootRpid ? '置顶下的作者回复' : '置顶评论') : '',
@@ -81,23 +100,52 @@
     };
   }
   async function start() {
-    if (starting || sampling) return;
+    if (starting || sampling) {
+      record('warn', '忽略重复启动请求', { starting, sampling, phase,
+        elapsedMs: startStartedAt ? Date.now() - startStartedAt : 0 });
+      return;
+    }
     desiredActive = true;
     starting = true;
+    startStartedAt = Date.now();
     lastError = '';
     const currentPage = page;
     const run = ++startRun;
+    let timeout;
+    setPhase('starting', { run, timeoutMs: START_TIMEOUT_MS, page: currentPage,
+      url: location.href, keywords: demo()?.getKeywords?.() ?? [] });
     try {
-      await demo().start();
+      const task = demo().start({ onStage(next, details) {
+        if (currentPage === identity() && desiredActive && run === startRun) setPhase(next, details);
+      } });
+      const deadline = new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error(`启动流程超过 ${START_TIMEOUT_MS / 1000} 秒，已停止旧任务`)),
+          START_TIMEOUT_MS);
+      });
+      await Promise.race([task, deadline]);
       if (currentPage !== identity() || !desiredActive || run !== startRun) return;
       if (!demo().report()?.active) throw new Error('时间轴尚未启用，请先播放视频再重试');
+      setPhase('active', { run, elapsedMs: Date.now() - startStartedAt,
+        source: snapshot().source, segments: snapshot().total, keep: snapshot().keep });
     } catch (error) {
       if (currentPage === identity() && run === startRun) {
+        demo()?.stop();
         desiredActive = false;
         lastError = error.message;
-        record('error', '开启失败：', error);
+        setPhase('failed', { run, elapsedMs: Date.now() - startStartedAt,
+          message: error.message }, 'error');
+        record('error', '开启失败', { message: error.message,
+          stack: typeof error.stack === 'string' ? error.stack.split('\n').slice(0, 5).join(' | ') : '' });
       }
-    } finally { if (run === startRun) starting = false; }
+    } finally {
+      clearTimeout(timeout);
+      if (run === startRun) {
+        record('log', '启动任务结束', { run, phase, elapsedMs: Date.now() - startStartedAt,
+          active: !!demo()?.report()?.active, lastError });
+        starting = false;
+        startStartedAt = 0;
+      }
+    }
   }
   async function runOcr() {
     if (!ocrAllowed || ocrRunning || starting) return;
@@ -130,22 +178,38 @@
     } finally { ocrRunning = false; sampling = false; }
   }
   root.JuyaPanel = {
-    version: '0.4.0', snapshot,
+    version: BRIDGE_VERSION, snapshot,
     finishInstall() {
       delete root.__JUYA_DEMO_MANUAL_START__;
       delete root.__JUYA_DEMO_LOGGER__;
-      record('log', '页面脚本已就绪；总开关开启时自动读取评论时间轴。');
+      phase = 'idle';
+      phaseDetails = {};
+      phaseStartedAt = Date.now();
+      const owner = root.__INITIAL_STATE__?.videoData?.owner;
+      record('log', '页面脚本已就绪；总开关开启时自动读取评论时间轴。', {
+        bridgeVersion: BRIDGE_VERSION, url: location.href, identity: identity(),
+        documentReadyState: document.readyState,
+        owner: owner ? { name: owner.name, mid: String(owner.mid ?? '') } : null,
+        videoCount: document.querySelectorAll?.('video')?.length ?? null
+      });
+      return snapshot();
+    },
+    note(level, message, details) {
+      record(['log', 'warn', 'error'].includes(level) ? level : 'log', message, details ?? {});
       return snapshot();
     },
     command(action, value) {
       checkPage();
       if (!demo()) throw new Error('脚本尚未加载，请重新打开弹窗');
+      record('log', '收到控制命令', { action, phase, starting, sampling, ocrRunning });
       if (action === 'stop') {
         desiredActive = false;
         starting = false;
+        startStartedAt = 0;
         startRun++;
         demo().stop();
         lastError = '';
+        setPhase('stopped', { reason: 'command' });
         record('log', '已停止自动跳段。');
       } else if (action === 'clear') { logs.length = 0; }
       else if (action === 'allowOcr') { ocrAllowed = !!value; }

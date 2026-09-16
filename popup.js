@@ -1,6 +1,16 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const config = globalThis.JuyaKeywordConfig;
+const BRIDGE_VERSION = '0.4.2';
+const PHASE_LABELS = Object.freeze({
+  idle: '待命', starting: '启动', initializing: '初始化',
+  'waiting-comments': '等待评论正文', 'reading-replies': '读取作者回复',
+  'rechecking-comments': 'OCR 前复查评论', 'ocr-sampling': 'OCR 几何取帧',
+  'ocr-preparing': '准备 OCR', 'ocr-loading': '加载 OCR 引擎',
+  'ocr-recognizing': '识别章节标题', 'ocr-complete': 'OCR 完成',
+  attaching: '连接播放器', active: '已启用', failed: '失败',
+  cancelled: '已取消', stopped: '已停止'
+});
 let tabId;
 let lastLogKey = '';
 let fetching = false;
@@ -15,6 +25,24 @@ function fail(error) {
   lastError = error.message || String(error);
   $('error').textContent = lastError;
   $('error').hidden = false;
+}
+async function writeClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch { /* Fall back to a temporary selection in the extension popup. */ }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.append(textarea);
+  textarea.select();
+  const copied = document.execCommand('copy');
+  textarea.remove();
+  if (!copied) throw new Error('浏览器拒绝剪贴板写入');
 }
 async function pageCall(method, ...args) {
   if (!tabId) return null;
@@ -86,11 +114,15 @@ function render(state) {
   renderMaster();
   $('video-title').textContent = state.title || '未读取到视频';
   $('video-title').title = state.title || '';
+  const phaseLabel = PHASE_LABELS[state.phase] || state.phase || '处理中';
+  const phaseSeconds = Math.round((state.phaseElapsedMs || 0) / 1000);
   $('status').textContent = !globalEnabled ? '已关闭' : state.sampling ? '实验取帧中'
-    : state.starting ? '读取中' : state.active ? '本页已启用'
+    : state.starting ? `读取中·${phaseLabel}` : state.active ? '本页已启用'
     : state.lastError ? '本页未启用' : state.supported ? '检查中' : '待命中';
   $('status').className = `badge ${state.sampling || state.starting ? 'busy' : globalEnabled && state.active ? 'active' : ''}`;
-  $('source').textContent = state.source ? `时间轴来源：${state.source}` : state.supported
+  $('source').textContent = state.starting
+    ? `当前阶段：${phaseLabel} · 已持续 ${phaseSeconds} 秒`
+    : state.source ? `时间轴来源：${state.source}` : state.supported
     ? (state.lastError ? '自动处理未完成；请查看下方错误'
       : globalEnabled ? '正在检查评论时间轴' : '打开总开关后自动读取评论时间轴')
     : '当前页面未识别为橘鸦Juya视频；总开关会继续待命';
@@ -103,6 +135,7 @@ function render(state) {
   $('ocr-run').textContent = state.ocrRunning ? '实验运行中…' : '运行一次 OCR';
   $('ocr-state').textContent = state.ocrSummary ? `${state.ocrSummary.blocks} 块 · ${state.ocrSummary.candidates} 个关注候选` : '';
   $('clear').disabled = !state.logs.length;
+  $('copy-logs').disabled = !state.logs.length;
   updateSettingsControls();
   const error = state.lastError || lastError;
   $('error').textContent = error;
@@ -129,7 +162,7 @@ function render(state) {
 function renderUnavailable(title, reason) {
   connected = false;
   render({ title, ready: false, supported: false, active: false, total: 0, keep: 0,
-    jumps: 0, ocrAllowed: false, ocrRunning: false, logs: [] });
+    jumps: 0, ocrAllowed: false, ocrRunning: false, phase: 'idle', phaseElapsedMs: 0, logs: [] });
   $('source').textContent = reason;
 }
 async function command(action, value) {
@@ -147,7 +180,7 @@ async function refresh() {
       return;
     }
     const state = await pageCall('snapshot');
-    if (state?.version === '0.4.0' && state.ready) {
+    if (state?.version === BRIDGE_VERSION && state.ready) {
       connected = true;
       render(state);
     } else {
@@ -188,6 +221,33 @@ $('global-switch').addEventListener('change', async () => {
 $('ocr-run').addEventListener('click', () => command('ocr'));
 $('ocr-enabled').addEventListener('change', () => command('allowOcr', $('ocr-enabled').checked));
 $('clear').addEventListener('click', () => command('clear'));
+$('copy-logs').addEventListener('click', async () => {
+  if (!lastState?.logs?.length) return;
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const summary = {
+    extensionVersion: chrome.runtime.getManifest().version,
+    bridgeVersion: lastState.version,
+    generatedAt: new Date().toISOString(),
+    tab: { id: tab?.id ?? null, url: tab?.url ?? '', title: tab?.title ?? '' },
+    globalEnabled,
+    state: {
+      ready: lastState.ready, supported: lastState.supported, active: lastState.active,
+      starting: lastState.starting, sampling: lastState.sampling, ocrRunning: lastState.ocrRunning,
+      phase: lastState.phase, phaseDetails: lastState.phaseDetails,
+      phaseElapsedMs: lastState.phaseElapsedMs, startElapsedMs: lastState.startElapsedMs,
+      source: lastState.source, total: lastState.total, keep: lastState.keep,
+      jumps: lastState.jumps, keywords: lastState.keywords, lastError: lastState.lastError
+    }
+  };
+  const text = ['信息茧房诊断日志', JSON.stringify(summary, null, 2), '',
+    ...lastState.logs.map(log => `[${log.time}] [${log.level}] ${log.text}`)].join('\n');
+  try {
+    await writeClipboard(text);
+    const button = $('copy-logs');
+    button.textContent = '已复制';
+    setTimeout(() => { button.textContent = '复制诊断日志'; }, 1200);
+  } catch (error) { fail(new Error(`复制日志失败：${error.message}`)); }
+});
 $('keyword-group').addEventListener('change', () => {
   const current = config.selected(settings);
   if (($('keyword-name').value !== current.name || $('keyword-words').value !== current.keywords.join('\n'))

@@ -7,6 +7,23 @@
   let activeKeywords = [...KEYWORDS];
   const TAG = '[JuyaDemo]';
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const clock = () => root.performance?.now?.() ?? Date.now();
+  function withTimeout(promise, timeoutMs, label, onLateResolve) {
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return Promise.resolve(promise);
+    let timer;
+    let timedOut = false;
+    const source = Promise.resolve(promise).then(value => {
+      if (timedOut && onLateResolve) Promise.resolve(onLateResolve(value)).catch(() => {});
+      return value;
+    });
+    const deadline = new Promise((resolve, reject) => {
+      timer = setTimeout(() => {
+        timedOut = true;
+        reject(new Error(`${label}超时（${Math.round(timeoutMs / 1000)} 秒）`));
+      }, timeoutMs);
+    });
+    return Promise.race([source, deadline]).finally(() => clearTimeout(timer));
+  }
   // Measured on Juya's 16:9 AI-news layout. Values are normalized so the same
   // crop works for the 1280x720 stream used in the experiment and a 4K stream.
   const VISUAL_NAV = Object.freeze({
@@ -36,7 +53,19 @@
     fuzzyMinKeywordLength: 5,
     fuzzyMaxDistance: 1
   });
-  const OCR_FALLBACK = Object.freeze({ minSkipConfidence: 80, minReadableLetters: 4 });
+  const STARTUP_TIMING = Object.freeze({
+    commentWaitMs: 15000,
+    commentRecheckMs: 5000,
+    commentRecheckSettleMs: root.__JUYA_COMMENT_RECHECK_SETTLE_MS__ ?? 1000,
+    commentPollMs: 250,
+    replyAttempts: 24,
+    replyRecheckAttempts: 10,
+    replyPollMs: 500,
+    workerInitTimeoutMs: 45000,
+    workerJobTimeoutMs: 15000,
+    workerTerminateTimeoutMs: 5000,
+    ocrTotalTimeoutMs: 90000
+  });
 
   function parseTimeline(text, duration, { minRows = 2 } = {}) {
     if (!Number.isFinite(duration) || duration <= 0) throw new Error('视频总时长尚未就绪');
@@ -100,33 +129,75 @@
     });
   }
 
-  async function readPinned(doc) {
+  function pinnedReadiness(el) {
+    const dataText = typeof el.__data?.content?.message === 'string'
+      ? el.__data.content.message.trim() : '';
+    // Modern renderers expose the complete text in __data; avoid traversing a shell
+    // until that data is absent (also keeps legacy/test objects safe).
+    const body = !dataText && typeof el.querySelectorAll === 'function'
+      ? deepAll(el, 'bili-rich-text, .reply-content, .text').find(Boolean) : null;
+    const bodyText = body ? domText(body).trim() : '';
+    return { ready: !!(dataText || bodyText), dataLength: dataText.length,
+      bodyLength: bodyText.length, hasData: !!el.__data, hasBody: !!body };
+  }
+
+  async function readPinned(doc, options = {}) {
+    const timeoutMs = options.timeoutMs ?? STARTUP_TIMING.commentWaitMs;
+    const minimumWaitMs = Math.min(timeoutMs, options.minimumWaitMs ?? 0);
+    const pollMs = options.pollMs ?? STARTUP_TIMING.commentPollMs;
+    const valid = options.valid ?? (() => true);
+    const reason = options.reason ?? 'initial';
+    const startedAt = Date.now();
+    const area = doc.querySelector('bili-comments, #commentapp, #comment');
+    const view = doc.defaultView;
+    const position = view && { left: view.scrollX, top: view.scrollY, url: view.location.href };
+    let userInteracted = false;
+    const onInput = () => { userInteracted = true; };
+    const inputs = ['wheel', 'touchmove', 'pointerdown', 'keydown'];
     let candidates = pinnedCandidates(doc);
-    if (!candidates.length) {
-      const area = doc.querySelector('bili-comments, #commentapp, #comment');
-      const view = doc.defaultView;
-      const position = view && { left: view.scrollX, top: view.scrollY, url: view.location.href };
-      let userInteracted = false;
-      const onInput = () => { userInteracted = true; };
-      const inputs = ['wheel', 'touchmove', 'pointerdown', 'keydown'];
-      try {
-        for (const name of inputs) view?.addEventListener(name, onInput, { passive: true });
-        // Only trigger lazy loading when comment data is actually missing.
+    let states = candidates.map(pinnedReadiness);
+    let lastSignature = '';
+    console.log(TAG, '评论读取开始', { reason, timeoutMs, minimumWaitMs, commentHost: !!area,
+      readyState: doc.readyState, url: view?.location?.href ?? '' });
+    try {
+      for (const name of inputs) view?.addEventListener(name, onInput, { passive: true });
+      // Trigger lazy rendering only while actual comment text is unavailable.
+      if (!states.some(state => state.ready)) {
         area?.scrollIntoView({ block: 'center', behavior: 'instant' });
-        for (let i = 0; i < 30; i++) {
-          candidates = pinnedCandidates(doc);
-          if (candidates.length) break;
-          await sleep(500);
+      }
+      while (valid()) {
+        candidates = pinnedCandidates(doc);
+        states = candidates.map(pinnedReadiness);
+        const signature = JSON.stringify({ candidates: candidates.length,
+          ready: states.filter(state => state.ready).length,
+          data: states.filter(state => state.hasData).length,
+          bodies: states.filter(state => state.hasBody).length });
+        if (signature !== lastSignature) {
+          lastSignature = signature;
+          console.log(TAG, '评论加载状态', { reason, elapsedMs: Date.now() - startedAt,
+            ...JSON.parse(signature) });
         }
-      } finally {
-        for (const name of inputs) view?.removeEventListener(name, onInput);
-        // Do not pull the user back if they interacted or navigated while loading.
-        if (area && position && !userInteracted && view.location.href === position.url) {
-          view.scrollTo({ left: position.left, top: position.top, behavior: 'instant' });
-        }
+        // A renderer shell or pin badge is not enough: wait for actual data/text hydration.
+        if (states.some(state => state.ready) && Date.now() - startedAt >= minimumWaitMs) break;
+        if (Date.now() - startedAt >= timeoutMs) break;
+        await sleep(Math.min(pollMs, Math.max(1, timeoutMs - (Date.now() - startedAt))));
+      }
+    } finally {
+      for (const name of inputs) view?.removeEventListener(name, onInput);
+      // Do not pull the user back if they interacted or navigated while loading.
+      if (area && position && !userInteracted && view.location.href === position.url) {
+        view.scrollTo({ left: position.left, top: position.top, behavior: 'instant' });
       }
     }
-    if (!candidates.length) throw new Error('未识别到置顶评论。请滚动到评论区待加载后重试；可运行 JuyaDemo.inspect() 查看结构');
+    if (!valid()) {
+      console.warn(TAG, '评论读取已取消', { reason, elapsedMs: Date.now() - startedAt });
+      return [];
+    }
+    if (!candidates.length || !states.some(state => state.ready)) {
+      console.warn(TAG, '评论读取超时', { reason, elapsedMs: Date.now() - startedAt,
+        candidates: candidates.length, states });
+      throw new Error('未识别到置顶评论正文。评论节点可能尚未完成加载；请稍后重试');
+    }
     const results = [];
     for (const el of candidates) {
       const data = el.__data;
@@ -154,6 +225,10 @@
       results.push({ text: domText(body).trim(), source: 'pinned expanded DOM',
         rpid: el.getAttribute('data-id') || '', author: '', completeness: 'DOM 提取，请核对控制台全文与最后一条资讯' });
     }
+    if (!results.length) throw new Error('未识别到置顶评论正文。置顶节点存在，但数据尚未完成加载');
+    console.log(TAG, '评论读取完成', { reason, elapsedMs: Date.now() - startedAt,
+      candidates: candidates.length, results: results.length,
+      sources: results.map(result => result.source), textLengths: results.map(result => result.text.length) });
     return results;
   }
 
@@ -220,9 +295,17 @@
     };
   }
 
-  async function readPinnedReplies(doc, pinned, duration, owner, valid = () => true, { supplement = false } = {}) {
+  async function readPinnedReplies(doc, pinned, duration, owner, valid = () => true, options = {}) {
+    const supplement = options.supplement ?? false;
+    const maxAttempts = options.maxAttempts ?? STARTUP_TIMING.replyAttempts;
+    const pollMs = options.pollMs ?? STARTUP_TIMING.replyPollMs;
+    const reason = options.reason ?? (supplement ? 'supplement' : 'fallback');
+    const startedAt = Date.now();
     const clicked = new WeakSet();
-    for (let attempt = 0; attempt < 24 && valid(); attempt++) {
+    let lastSignature = '';
+    console.log(TAG, '作者回复读取开始', { reason, supplement, maxAttempts,
+      pinnedRpids: pinned.map(comment => comment.rpid).filter(Boolean) });
+    for (let attempt = 0; attempt < maxAttempts && valid(); attempt++) {
       const found = [];
       const expanders = [];
       let possibleReplies = false;
@@ -254,19 +337,84 @@
           possibleReplies = true;
         }
       }
-      if (found.length) return found;
-      if (matchedThreads && knownEmpty && !expanders.length) return [];
+      const signature = JSON.stringify({ attempt: attempt + 1, matchedThreads,
+        found: found.length, expanders: expanders.length, possibleReplies, knownEmpty });
+      if (signature !== lastSignature) {
+        lastSignature = signature;
+        console.log(TAG, '作者回复加载状态', { reason, elapsedMs: Date.now() - startedAt,
+          ...JSON.parse(signature) });
+      }
+      if (found.length) {
+        console.log(TAG, '作者回复时间轴读取完成', { reason, elapsedMs: Date.now() - startedAt,
+          timelines: found.length, rpids: found.map(item => item.comment.rpid) });
+        return found;
+      }
+      if (matchedThreads && knownEmpty && !expanders.length) {
+        console.log(TAG, '置顶线程明确没有回复', { reason, elapsedMs: Date.now() - startedAt });
+        return [];
+      }
       // Do not add a 12-second delay when the complete cached thread has no author timeline.
-      if (supplement && !possibleReplies) return [];
+      if (supplement && !possibleReplies) {
+        console.log(TAG, '置顶线程没有待加载的作者补充', { reason, elapsedMs: Date.now() - startedAt });
+        return [];
+      }
       // Expand only the pinned thread's reply list; full text comes from reply data.
       for (const { replies, button } of expanders) {
         if (!valid()) return [];
         clicked.add(replies);
+        console.log(TAG, '展开置顶评论回复列表', { reason, attempt: attempt + 1 });
         button.click();
       }
-      await sleep(500);
+      await sleep(pollMs);
     }
+    console.warn(TAG, valid() ? '作者回复读取达到等待上限' : '作者回复读取已取消', {
+      reason, elapsedMs: Date.now() - startedAt, maxAttempts });
     return [];
+  }
+
+  async function resolvePinnedTimeline(doc, pinned, duration, owner, valid = () => true, options = {}) {
+    const reason = options.reason ?? 'initial';
+    const onStage = options.onStage ?? (() => {});
+    console.log(TAG, '解析置顶评论时间轴', { reason, comments: pinned.length,
+      rpids: pinned.map(comment => comment.rpid).filter(Boolean) });
+    let parsed = pinned.map(comment => {
+      try {
+        const segments = parseTimeline(comment.text, duration);
+        console.log(TAG, '置顶正文时间轴解析成功', { reason, rpid: comment.rpid,
+          segments: segments.length, textLength: comment.text.length });
+        return { comment, segments };
+      } catch (error) {
+        console.warn(TAG, '置顶正文不是有效时间轴', { reason, rpid: comment.rpid,
+          message: error.message, textLength: comment.text.length });
+        return null;
+      }
+    }).filter(Boolean);
+    if (!parsed.length && pinned.length) {
+      onStage('reading-replies', { reason, pinned: pinned.length });
+      console.log(TAG, '置顶正文没有有效时间轴，检查该置顶评论下橘鸦Juya本人的回复', { reason });
+      parsed = await readPinnedReplies(doc, pinned, duration, owner, valid, {
+        reason: `${reason}-fallback`, maxAttempts: options.replyAttempts
+      });
+    } else if (parsed.length === 1 && parsed[0].comment.author === owner.name
+      && parsed[0].comment.authorMid === String(owner.mid)) {
+      onStage('reading-replies', { reason, supplement: true, pinned: 1 });
+      console.log(TAG, '置顶正文已有时间轴，检查同一置顶下作者是否补充后续条目', { reason });
+      const replies = await readPinnedReplies(doc, [parsed[0].comment], duration, owner, valid, {
+        supplement: true, reason: `${reason}-supplement`, maxAttempts: options.replyAttempts
+      });
+      if (!valid()) return [];
+      const originalCount = parsed[0].segments.length;
+      parsed[0] = mergePinnedTimeline(parsed[0], replies, duration, owner);
+      if (parsed[0].segments.length > originalCount) {
+        console.log(TAG, '已合并置顶正文与作者回复', {
+          reason, original: originalCount, added: parsed[0].segments.length - originalCount,
+          total: parsed[0].segments.length, rpids: parsed[0].comment.parts.map(part => part.rpid)
+        });
+      }
+    }
+    console.log(TAG, '评论时间轴解析阶段结束', { reason, sources: parsed.length,
+      segments: parsed.map(item => item.segments.length) });
+    return parsed;
   }
 
   function findVideo(doc) {
@@ -618,19 +766,14 @@
     return matches;
   }
 
-  // Missing or uncertain OCR text must never become an automatic SKIP.
   function classifyOcrSegment(segment, keywords = activeKeywords, options = {}) {
     const title = normalizeOcrText(segment.ocrText ?? segment.title);
     const matches = matchOcrKeywords(title, keywords, options);
     const confidence = Number.isFinite(segment.confidence) ? segment.confidence : null;
-    const readableLetters = (title.match(/[a-z]/gi) || []).length;
-    const certainNonMatch = confidence !== null
-      && confidence >= (options.minSkipConfidence ?? OCR_FALLBACK.minSkipConfidence)
-      && readableLetters >= (options.minReadableLetters ?? OCR_FALLBACK.minReadableLetters);
-    const reason = matches.length ? 'keyword' : certainNonMatch ? 'unmatched' : 'uncertain-ocr';
+    const reason = matches.length ? 'keyword' : 'unmatched';
     return { title: title || '[未识别]', ocrText: title, confidence,
-      keep: reason !== 'unmatched', keywords: matches.map(match => match.keyword), matches,
-      reviewRequired: reason === 'uncertain-ocr' || matches.some(match => match.mode === 'fuzzy'),
+      keep: matches.length > 0, keywords: matches.map(match => match.keyword), matches,
+      reviewRequired: matches.some(match => match.mode === 'fuzzy'),
       reason };
   }
 
@@ -842,12 +985,13 @@
     return { stop, events, get active() { return active; } };
   }
 
-  const api = { KEYWORDS, VISUAL_NAV, OCR_EXPERIMENT, parseTimeline, skipTarget, deepAll, domText, pinnedCandidates, readPinned, findVideo,
+  const api = { KEYWORDS, VISUAL_NAV, OCR_EXPERIMENT, STARTUP_TIMING, withTimeout,
+    parseTimeline, skipTarget, deepAll, domText, pinnedCandidates, pinnedReadiness, readPinned, findVideo,
     captureNavigationStrip, detectVisualBoundaries, mergeVisualGeometries, cropNavigationBlocks, repairPlayheadInStrip, prepareOcrBlock,
     normalizeOcrText, editDistance, matchOcrKeywords, classifyOcrSegment, ocrFallbackSegments, sameVisualBoundaries,
     loadTesseract, compareTimelines,
     seekVideoFrame, attach,
-    juyaOwner, replyTimelines, readPinnedReplies, mergePinnedTimeline };
+    juyaOwner, replyTimelines, readPinnedReplies, resolvePinnedTimeline, mergePinnedTimeline };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   root.JuyaDemo?.stop?.();
   let controller;
@@ -1015,6 +1159,17 @@
     },
     async ocrExperiment(options = {}) {
       juyaOwner(root.__INITIAL_STATE__);
+      const startedAt = clock();
+      const totalTimeoutMs = options.ocrTotalTimeoutMs ?? STARTUP_TIMING.ocrTotalTimeoutMs;
+      const deadline = startedAt + totalTimeoutMs;
+      const remaining = (limit, label) => {
+        const left = deadline - clock();
+        if (left <= 0) throw new Error(`OCR 总时限已耗尽（阶段：${label}）`);
+        return Math.max(1, Math.min(limit, left));
+      };
+      options.onStage?.('ocr-preparing', { totalTimeoutMs });
+      console.log(TAG, 'OCR 识别准备', { totalTimeoutMs, suppliedVisual: !!options.visualResult,
+        suppliedWorker: !!options.worker });
       const visual = options.visualResult
         ?? await this.visualExperimentStable(options.visualOptions ?? options);
       if (!visual?.blockCanvases?.length || visual.blockCanvases.length !== visual.segments.length) {
@@ -1029,8 +1184,12 @@
         : { canvas: visual.canvas, repaired: false, expectedX: null, donorFrame: null };
       const ocrBlockCanvases = cropNavigationBlocks(repairedStrip.canvas, visual.boundariesPx);
       const processedCanvases = ocrBlockCanvases.map(canvas => prepareOcrBlock(canvas, options));
+      options.onStage?.('ocr-loading', { blocks: processedCanvases.length });
+      console.log(TAG, 'OCR 引擎加载开始', { blocks: processedCanvases.length,
+        repairedPlayhead: repairedStrip.repaired, elapsedMs: Math.round(clock() - startedAt) });
       const tesseract = options.tesseract
-        ?? await loadTesseract(root, document, options.tesseractUrl, options.loadTimeoutMs);
+        ?? await loadTesseract(root, document, options.tesseractUrl,
+          remaining(options.loadTimeoutMs ?? 45000, '加载 Tesseract.js'));
       let worker = options.worker;
       let ownsWorker = false;
       const progressSeen = new Set();
@@ -1048,29 +1207,34 @@
             });
           };
         }
-        worker = await tesseract.createWorker(
-          options.language ?? OCR_EXPERIMENT.language,
-          options.oem,
-          workerOptions
-        );
+        const workerPromise = tesseract.createWorker(options.language ?? OCR_EXPERIMENT.language,
+          options.oem, workerOptions);
+        worker = await withTimeout(workerPromise,
+          remaining(options.workerInitTimeoutMs ?? STARTUP_TIMING.workerInitTimeoutMs, '初始化 OCR Worker'),
+          'OCR Worker 初始化', lateWorker => lateWorker?.terminate?.());
         ownsWorker = true;
       }
 
       const rows = [];
-      const startedAt = performance.now();
       try {
-        await worker.setParameters({
+        await withTimeout(worker.setParameters({
           tessedit_pageseg_mode: options.psm ?? tesseract.PSM?.SINGLE_BLOCK ?? '6',
           preserve_interword_spaces: '1',
           user_defined_dpi: '300',
           ...(options.parameters || {})
-        });
+        }), remaining(options.workerJobTimeoutMs ?? STARTUP_TIMING.workerJobTimeoutMs, '配置 OCR Worker'),
+        'OCR Worker 参数配置');
+        options.onStage?.('ocr-recognizing', { blocks: processedCanvases.length });
         for (let index = 0; index < processedCanvases.length; index++) {
-          console.log(TAG, `OCR block ${index + 1}/${processedCanvases.length}`);
-          const recognition = await worker.recognize(processedCanvases[index]);
+          const blockStartedAt = clock();
+          console.log(TAG, 'OCR 分块开始', { block: index, position: `${index + 1}/${processedCanvases.length}`,
+            size: [processedCanvases[index].width, processedCanvases[index].height] });
+          const recognition = await withTimeout(worker.recognize(processedCanvases[index]),
+            remaining(options.workerJobTimeoutMs ?? STARTUP_TIMING.workerJobTimeoutMs, `识别分块 ${index}`),
+            `OCR 分块 ${index} 识别`);
           const title = normalizeOcrText(recognition.data?.text);
           const matches = matchOcrKeywords(title, options.keywords ?? activeKeywords, options);
-          rows.push({
+          const row = {
             index,
             start: visual.segments[index].start,
             end: visual.segments[index].end,
@@ -1082,13 +1246,23 @@
             keywords: matches.map(match => match.keyword),
             matches,
             reviewRequired: matches.some(match => match.mode === 'fuzzy')
-          });
+          };
+          rows.push(row);
+          console.log(TAG, 'OCR 分块完成', { block: index,
+            elapsedMs: Math.round(clock() - blockStartedAt), confidence: row.confidence,
+            title: row.title, keywords: row.keywords, reviewRequired: row.reviewRequired });
         }
       } finally {
-        if (ownsWorker) await worker.terminate();
+        if (ownsWorker && worker) {
+          try {
+            await withTimeout(worker.terminate(),
+              options.workerTerminateTimeoutMs ?? STARTUP_TIMING.workerTerminateTimeoutMs,
+              'OCR Worker 关闭');
+          } catch (error) { console.warn(TAG, 'OCR Worker 清理未完成', { message: error.message }); }
+        }
       }
 
-      const elapsedMs = performance.now() - startedAt;
+      const elapsedMs = clock() - startedAt;
       const fuzzyRows = rows.filter(row => row.matches.some(match => match.mode === 'fuzzy'));
       const warnings = [...visual.warnings];
       if (!rows.some(row => row.keepCandidate)) {
@@ -1132,75 +1306,104 @@
         attachSafe: false
       });
       if (warnings.length) console.warn(TAG, warnings.join('; '));
+      options.onStage?.('ocr-complete', { elapsedMs: Math.round(elapsedMs), blocks: rows.length,
+        keepCandidates: rows.filter(row => row.keepCandidate).length, warnings: warnings.length });
       return result;
     },
-    async start() {
+    async start(options = {}) {
       this.stop();
       const run = generation;
       const page = identity();
+      const startedAt = clock();
+      const stage = (name, details = {}) => {
+        const payload = { stage: name, run, elapsedMs: Math.round(clock() - startedAt), ...details };
+        console.log(TAG, '启动阶段', payload);
+        try { options.onStage?.(name, payload); } catch (error) {
+          console.warn(TAG, '阶段回调失败', { stage: name, message: error.message });
+        }
+      };
       report = null;
       try {
+        stage('initializing', { url: location.href, identity: page, keywords: [...activeKeywords] });
         const owner = juyaOwner(root.__INITIAL_STATE__);
         video = findVideo(document);
         const source = video.currentSrc;
+        const valid = () => run === generation && page === identity()
+          && video.isConnected && video.currentSrc === source;
+        stage('waiting-comments', { duration: video.duration,
+          videoSize: [video.videoWidth, video.videoHeight], readyState: video.readyState });
         let pinned = [];
-        try { pinned = await readPinned(document); }
+        try {
+          pinned = await readPinned(document, { valid, reason: 'initial',
+            timeoutMs: options.commentWaitMs ?? STARTUP_TIMING.commentWaitMs });
+        }
         catch (error) {
           if (!error.message.includes('未识别到置顶评论')) throw error;
-          console.warn(TAG, '没有可用的置顶评论，继续尝试视频章节条 OCR');
+          console.warn(TAG, '首次评论读取没有得到可用置顶正文', { message: error.message });
         }
-        if (run !== generation || page !== identity()) return;
-        let parsed = pinned.map(comment => {
-          try { return { comment, segments: parseTimeline(comment.text, video.duration) }; }
-          catch (error) { console.warn(TAG, error.message); return null; }
-        }).filter(Boolean);
-        if (!parsed.length && pinned.length) {
-          console.log(TAG, '置顶正文没有有效时间轴，检查该置顶评论下橘鸦Juya本人的回复');
-          parsed = await readPinnedReplies(document, pinned, video.duration, owner,
-            () => run === generation && page === identity());
-          if (run !== generation || page !== identity()) return;
-        } else if (parsed.length === 1 && parsed[0].comment.author === owner.name
-          && parsed[0].comment.authorMid === String(owner.mid)) {
-          console.log(TAG, '置顶正文已有时间轴，检查同一置顶下作者是否补充后续条目');
-          const replies = await readPinnedReplies(document, [parsed[0].comment], video.duration, owner,
-            () => run === generation && page === identity(), { supplement: true });
-          if (run !== generation || page !== identity()) return;
-          const originalCount = parsed[0].segments.length;
-          parsed[0] = mergePinnedTimeline(parsed[0], replies, video.duration, owner);
-          if (parsed[0].segments.length > originalCount) {
-            console.log(TAG, '已合并置顶正文与作者回复', {
-              original: originalCount, added: parsed[0].segments.length - originalCount,
-              total: parsed[0].segments.length, rpids: parsed[0].comment.parts.map(part => part.rpid)
-            });
+        if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-after-comments' }); return; }
+        let parsed = await resolvePinnedTimeline(document, pinned, video.duration, owner, valid, {
+          reason: 'initial', onStage: stage,
+          replyAttempts: options.replyAttempts ?? STARTUP_TIMING.replyAttempts
+        });
+        if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-after-replies' }); return; }
+
+        // Comments often hydrate immediately after the first deadline. Recheck before committing
+        // to the much heavier visual/OCR fallback, and re-run the author-reply path as well.
+        if (!parsed.length) {
+          stage('rechecking-comments', { timeoutMs: options.commentRecheckMs ?? STARTUP_TIMING.commentRecheckMs });
+          let rechecked = [];
+          try {
+            rechecked = await readPinned(document, { valid, reason: 'pre-ocr-recheck',
+              timeoutMs: options.commentRecheckMs ?? STARTUP_TIMING.commentRecheckMs,
+              minimumWaitMs: options.commentRecheckSettleMs ?? STARTUP_TIMING.commentRecheckSettleMs });
+          } catch (error) {
+            if (!error.message.includes('未识别到置顶评论')) throw error;
+            console.warn(TAG, 'OCR 前评论复查仍未取得置顶正文', { message: error.message });
           }
+          if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-during-recheck' }); return; }
+          if (rechecked.length) pinned = rechecked;
+          parsed = await resolvePinnedTimeline(document, pinned, video.duration, owner, valid, {
+            reason: 'pre-ocr-recheck', onStage: stage,
+            replyAttempts: options.replyRecheckAttempts ?? STARTUP_TIMING.replyRecheckAttempts
+          });
+          if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-after-recheck' }); return; }
         }
         if (!parsed.length) {
-          console.log(TAG, '置顶正文和作者回复均无有效时间轴，开始视频章节条 OCR 降级');
+          stage('ocr-sampling', { reason: 'comment-timeline-unavailable', maxSamples: 3 });
+          console.warn(TAG, '两轮评论读取均无有效时间轴，开始视频章节条 OCR 降级');
           const samples = [];
           let visual;
           for (let attempt = 0; attempt < 3 && !visual; attempt++) {
+            console.log(TAG, 'OCR 几何取样开始', { attempt: attempt + 1, previousSamples: samples.length });
             const sample = await this.visualExperimentStable();
-            if (run !== generation || page !== identity() || !video.isConnected || video.currentSrc !== source) return;
+            if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-during-ocr-sampling' }); return; }
             if (!sample.reliable) throw new Error(`OCR 章节取样不可靠：${sample.warnings.join('；')}`);
             visual = samples.find(previous => sameVisualBoundaries(previous, sample));
             samples.push(sample);
+            console.log(TAG, 'OCR 几何取样完成', { attempt: attempt + 1,
+              boundaries: sample.boundariesPx,
+              blocks: sample.segments?.length ?? Math.max(0, (sample.boundariesPx?.length ?? 1) - 1),
+              matchedPrevious: !!visual, warnings: sample.warnings });
           }
           if (!visual) throw new Error('OCR 章节边界在三次取样中不一致，停止自动跳段');
-          const ocr = await this.ocrExperiment({ visualResult: visual });
-          if (run !== generation || page !== identity() || !video.isConnected || video.currentSrc !== source) return;
+          const ocr = await this.ocrExperiment({ visualResult: visual,
+            onStage: (name, details) => stage(name, details) });
+          if (!valid()) { stage('cancelled', { reason: 'page-or-player-changed-after-ocr' }); return; }
           const segments = ocrFallbackSegments(ocr, video.duration, activeKeywords);
           const text = segments.map(segment => `${Math.floor(segment.start / 60).toString().padStart(2, '0')}:${Math.floor(segment.start % 60).toString().padStart(2, '0')} ${segment.title}`).join('\n');
           parsed = [{ comment: { text, source: 'video navigation strip / Tesseract OCR',
             sourceKind: 'ocr-visual', author: owner.name, authorMid: String(owner.mid),
-            completeness: '视频章节条多次取样；低置信度区间保留，不作自动跳过' }, segments }];
+            completeness: '视频章节条多次取样；未命中关注关键词的区间自动跳过' }, segments }];
           console.log(TAG, 'OCR 降级完成', { blocks: segments.length,
             matched: segments.filter(segment => segment.keywords.length).length,
-            uncertain: segments.filter(segment => segment.reason === 'uncertain-ocr').length,
             skipped: segments.filter(segment => !segment.keep).length });
         }
         if (parsed.length !== 1) throw new Error(`可解析的时间轴来源数量为 ${parsed.length}，需要唯一时间轴`);
         const { comment, segments } = parsed[0];
         if (!segments.some(s => s.keep)) throw new Error('没有任何关键词命中，停止，避免整条视频被跳过');
+        stage('attaching', { source: comment.sourceKind ?? comment.source,
+          segments: segments.length, keep: segments.filter(segment => segment.keep).length });
         report = { url: location.href, title: document.title, capturedAt: new Date().toISOString(),
           duration: video.duration, keywords: [...activeKeywords], comment, segments };
         console.log(TAG, '时间轴来源与全文', comment);
@@ -1209,9 +1412,16 @@
           confidence: s.confidence ?? '', reason: s.reason ?? '' })));
         console.log(TAG, '实际播放器', video);
         controller = attach(video, segments, { valid: () => video.isConnected && identity() === page && video.currentSrc === source });
+        stage('active', { source: comment.sourceKind ?? comment.source,
+          segments: segments.length, keep: segments.filter(segment => segment.keep).length });
         console.log(TAG, '已启用。播放时进入未命中区间将自动跳转。JuyaDemo.stop() 停止；JuyaDemo.testSkip() 做一次真实边界实验。');
         return this.report();
-      } catch (error) { console.error(TAG, error.message); throw error; }
+      } catch (error) {
+        stage('failed', { name: error.name, message: error.message,
+          stack: typeof error.stack === 'string' ? error.stack.split('\n').slice(0, 4).join(' | ') : '' });
+        console.error(TAG, '启动失败', { message: error.message, name: error.name });
+        throw error;
+      }
     },
     async testSkip() {
       if (!controller?.active) throw new Error('请先成功运行 JuyaDemo.start()');

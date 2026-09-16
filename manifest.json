@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "信息茧房",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "为橘鸦Juya的 AI 早报按关键词跳过不感兴趣的资讯，评论索引缺席时尝试 OCR。",
   "icons": { "240": "imgs/Juya.png" },
   "permissions": ["scripting", "storage", "tabs", "webNavigation"],
