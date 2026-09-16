@@ -1,0 +1,62 @@
+{
+    "capturedAt":  "2026-09-16T08:25:59.7169632Z",
+    "evidence":  "Live public API data; not a live browser/Shadow DOM verification",
+    "urls":  [
+                 "https://api.bilibili.com/x/web-interface/view?bvid=BV1kAYS6FEeF",
+                 "https://api.bilibili.com/x/v2/reply?type=1\u0026oid=117255559972405\u0026sort=1\u0026pn=1\u0026ps=20"
+             ],
+    "bvid":  "BV1kAYS6FEeF",
+    "duration":  329,
+    "owner":  {
+                  "mid":  285286947,
+                  "name":  "橘鸦Juya"
+              },
+    "pinned":  {
+                   "rpid_str":  "317163680496",
+                   "root_str":  "0",
+                   "parent_str":  "0",
+                   "mid_str":  "285286947",
+                   "member":  {
+                                  "mid":  "285286947",
+                                  "uname":  "橘鸦Juya"
+                              },
+                   "content":  {
+                                   "message":  "00:09  Kimi K2.8 Preview 全量上线 Kimi Code\n00:27  DeepSeek 调整了 DeepSeek V4 Pro 的 API 下线计划\n00:38  Tibo回应现有用户服务含偶尔重置\n00:56  25位菲尔兹奖得主联署批评AI公司竞逐数学难题\n01:16  Claude Code 新增 claude plugin eval，评估插件或skill\n01:27  Claude Code桌面端新增单次会话防休眠开关\n01:34  ChatGPT 桌面应用宠物功能升级\n01:46  ChatGPT Sites上线协作编辑、私密分享与自定义域名\n02:00  OpenAI 发布 GPT-6 Astra 提示词与 skills 重构指南\n02:10  OpenAI 联合 Product Hunt 推出 GPT-6 Astra Challenge\n02:17  Devin Desktop 和 CLI 推出 Fusion 双模型模式\n02:31  阿里云Token Plan个人版升级\n02:47  SpaceXAI 发布 Grok Bot 入门指南\n02:57  Sakana AI 发布 Fugu Max 与 Fugu Ultra v2\n03:06  ElevenLabs推出Music v2.5\n03:18  小米开源目标说话人语音识别大模型 Xiaomi-CocktailASR-1\n03:32  OpenAI 宣布 GPT-Rosalind 向全球符合条件组织开放\n03:40  OpenAI 发文介绍内部存储平台 Habitat",
+                                   "max_line":  6
+                               },
+                   "reply_control":  {
+                                         "up_reply":  true,
+                                         "is_up_top":  true,
+                                         "max_line":  6,
+                                         "sub_reply_entry_text":  "共6条回复",
+                                         "sub_reply_title_text":  "相关回复共6条",
+                                         "time_desc":  "4天前发布",
+                                         "translation_switch":  2,
+                                         "support_share":  true
+                                     },
+                   "rcount":  6,
+                   "replies":  [
+                                   {
+                                       "rpid_str":  "317163549488",
+                                       "root_str":  "317163680496",
+                                       "parent_str":  "317163680496",
+                                       "mid_str":  "285286947",
+                                       "member":  {
+                                                      "mid":  "285286947",
+                                                      "uname":  "橘鸦Juya"
+                                                  },
+                                       "content":  {
+                                                       "message":  "03:55  OpenAI Agent 被指两个月前曾攻击 RubyGems\n04:06  报道称 OpenAI 考虑放缓最前沿 AI 开发\n04:23  英国议员推动禁止超级智能 AI 法案并呼吁达成国际协议\n04:32  Elon Musk更新Grok 4.7进度：发布时间推后数日\n04:50  Tibo 称 GPT-5.3-Codex-Spark 将于下周下线\n05:05  测试者称DeepSeek移动应用灰度朗读功能提供4种音色\n05:14  消息称 Nvidia 洽谈最多投资 100 亿美元担任 Anthropic IPO 锚定投资者",
+                                                       "max_line":  6
+                                                   },
+                                       "reply_control":  {
+                                                             "max_line":  6,
+                                                             "time_desc":  "4天前发布",
+                                                             "translation_switch":  1,
+                                                             "support_share":  true
+                                                         },
+                                       "rcount":  0
+                                   }
+                               ]
+               }
+}

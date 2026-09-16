@@ -1,0 +1,1049 @@
+{
+  "at": "2026-09-16T08:05:09.417Z",
+  "browser": "Edge headless, unpacked extension, actual action popup",
+  "initial": {
+    "ready": true,
+    "version": "0.1.0",
+    "supported": true,
+    "title": "Sam Altman 预告 OpenAI 本周将有重大发布【AI 早报 2026-09-16】",
+    "active": false,
+    "starting": false,
+    "sampling": false,
+    "ocrRunning": false,
+    "ocrAllowed": false,
+    "source": "",
+    "total": 0,
+    "keep": 0,
+    "jumps": 0,
+    "ocrSummary": null,
+    "lastError": "",
+    "logs": [
+      {
+        "id": 1,
+        "time": "16:04:22",
+        "level": "log",
+        "text": "已就绪。点击“开启”，使用评论时间轴自动跳段。"
+      }
+    ]
+  },
+  "started": {
+    "ready": true,
+    "version": "0.1.0",
+    "supported": true,
+    "title": "Sam Altman 预告 OpenAI 本周将有重大发布【AI 早报 2026-09-16】",
+    "active": true,
+    "starting": false,
+    "sampling": false,
+    "ocrRunning": false,
+    "ocrAllowed": false,
+    "source": "置顶评论",
+    "total": 14,
+    "keep": 4,
+    "jumps": 0,
+    "ocrSummary": null,
+    "lastError": "",
+    "logs": [
+      {
+        "id": 1,
+        "time": "16:04:22",
+        "level": "log",
+        "text": "已就绪。点击“开启”，使用评论时间轴自动跳段。"
+      },
+      {
+        "id": 2,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "时间轴来源与全文 {\"text\":\"00:09  Sam Altman 预热本周重磅产品发布，或为 GPT-6 Sol\\n00:25  Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\\n00:44  阶跃星辰发布 StepAudio 3 系列五款语音大模型\\n01:00  TypeSafe AI 发布首个 System One 模型 Jev\\n01:12  OpenAI Codex for OSS 资助开放第二轮申请\\n01:26  Qoder 国际版付费用户每天可领 500 Credits\\n01:40  Antigravity 中 Gemini 3.8 Flash 请求报错，修复后将重置速率限制\\n01:50  谷歌Gemini Notebook推出新界面与学习功能\\n02:02  OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5\\n02:17  Anthropic 扩展 Claude for Small Business\\n02:24  字节发布飞书8.0 for Agent版本\\n02:36  Factory 完成 2 亿美元融资，估值达 50 亿美元\\n02:48  微信工作人员回应微信小微隐私争议\\n03:00  两款面向 AI Agent 的举报热线上线\",\"source\":\"pinned renderer.__data.content.message\",\"rpid\":\"317591418592\",\"author\":\"橘鸦Juya\",\"completeness\":\"页面评论数据原文，不受折叠显示影响\"}"
+      },
+      {
+        "id": 3,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":9,\"end\":25,\"keep\":true,\"title\":\"Sam Altman 预热本周重磅产品发布,或为 GPT-6 Sol\",\"keywords\":\"GPT\"}"
+      },
+      {
+        "id": 4,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":25,\"end\":44,\"keep\":false,\"title\":\"Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 5,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":44,\"end\":60,\"keep\":false,\"title\":\"阶跃星辰发布 StepAudio 3 系列五款语音大模型\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 6,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":60,\"end\":72,\"keep\":false,\"title\":\"TypeSafe AI 发布首个 System One 模型 Jev\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 7,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":72,\"end\":86,\"keep\":true,\"title\":\"OpenAI Codex for OSS 资助开放第二轮申请\",\"keywords\":\"OpenAI, Codex\"}"
+      },
+      {
+        "id": 8,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":86,\"end\":100,\"keep\":false,\"title\":\"Qoder 国际版付费用户每天可领 500 Credits\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 9,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":100,\"end\":110,\"keep\":false,\"title\":\"Antigravity 中 Gemini 3.8 Flash 请求报错,修复后将重置速率限制\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 10,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":110,\"end\":122,\"keep\":false,\"title\":\"谷歌Gemini Notebook推出新界面与学习功能\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 11,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":122,\"end\":137,\"keep\":true,\"title\":\"OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5\",\"keywords\":\"OpenAI, GPT, Codex\"}"
+      },
+      {
+        "id": 12,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":137,\"end\":144,\"keep\":true,\"title\":\"Anthropic 扩展 Claude for Small Business\",\"keywords\":\"Claude, Anthropic\"}"
+      },
+      {
+        "id": 13,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":144,\"end\":156,\"keep\":false,\"title\":\"字节发布飞书8.0 for Agent版本\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 14,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":156,\"end\":168,\"keep\":false,\"title\":\"Factory 完成 2 亿美元融资,估值达 50 亿美元\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 15,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":168,\"end\":180,\"keep\":false,\"title\":\"微信工作人员回应微信小微隐私争议\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 16,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":180,\"end\":195,\"keep\":false,\"title\":\"两款面向 AI Agent 的举报热线上线\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 17,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "实际播放器 \"<video>\""
+      },
+      {
+        "id": 18,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "START {\"duration\":195,\"segments\":14}"
+      },
+      {
+        "id": 19,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "已启用。播放时进入未命中区间将自动跳转。JuyaDemo.stop() 停止；JuyaDemo.testSkip() 做一次真实边界实验。"
+      }
+    ]
+  },
+  "seek": {
+    "type": "SEEK_CONFIRMED",
+    "at": "2026-09-16T08:05:12.778Z",
+    "from": 25.023607,
+    "target": 72,
+    "title": "Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型",
+    "terminal": false,
+    "actual": 72.000813
+  },
+  "beforeOcr": {
+    "time": 80,
+    "segments": [
+      {
+        "start": 9,
+        "title": "Sam Altman 预热本周重磅产品发布,或为 GPT-6 Sol",
+        "keep": true,
+        "keywords": [
+          "GPT"
+        ],
+        "end": 25
+      },
+      {
+        "start": 25,
+        "title": "Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型",
+        "keep": false,
+        "keywords": [],
+        "end": 44
+      },
+      {
+        "start": 44,
+        "title": "阶跃星辰发布 StepAudio 3 系列五款语音大模型",
+        "keep": false,
+        "keywords": [],
+        "end": 60
+      },
+      {
+        "start": 60,
+        "title": "TypeSafe AI 发布首个 System One 模型 Jev",
+        "keep": false,
+        "keywords": [],
+        "end": 72
+      },
+      {
+        "start": 72,
+        "title": "OpenAI Codex for OSS 资助开放第二轮申请",
+        "keep": true,
+        "keywords": [
+          "OpenAI",
+          "Codex"
+        ],
+        "end": 86
+      },
+      {
+        "start": 86,
+        "title": "Qoder 国际版付费用户每天可领 500 Credits",
+        "keep": false,
+        "keywords": [],
+        "end": 100
+      },
+      {
+        "start": 100,
+        "title": "Antigravity 中 Gemini 3.8 Flash 请求报错,修复后将重置速率限制",
+        "keep": false,
+        "keywords": [],
+        "end": 110
+      },
+      {
+        "start": 110,
+        "title": "谷歌Gemini Notebook推出新界面与学习功能",
+        "keep": false,
+        "keywords": [],
+        "end": 122
+      },
+      {
+        "start": 122,
+        "title": "OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5",
+        "keep": true,
+        "keywords": [
+          "OpenAI",
+          "GPT",
+          "Codex"
+        ],
+        "end": 137
+      },
+      {
+        "start": 137,
+        "title": "Anthropic 扩展 Claude for Small Business",
+        "keep": true,
+        "keywords": [
+          "Claude",
+          "Anthropic"
+        ],
+        "end": 144
+      },
+      {
+        "start": 144,
+        "title": "字节发布飞书8.0 for Agent版本",
+        "keep": false,
+        "keywords": [],
+        "end": 156
+      },
+      {
+        "start": 156,
+        "title": "Factory 完成 2 亿美元融资,估值达 50 亿美元",
+        "keep": false,
+        "keywords": [],
+        "end": 168
+      },
+      {
+        "start": 168,
+        "title": "微信工作人员回应微信小微隐私争议",
+        "keep": false,
+        "keywords": [],
+        "end": 180
+      },
+      {
+        "start": 180,
+        "title": "两款面向 AI Agent 的举报热线上线",
+        "keep": false,
+        "keywords": [],
+        "end": 195
+      }
+    ]
+  },
+  "ocr": {
+    "ready": true,
+    "version": "0.1.0",
+    "supported": true,
+    "title": "Sam Altman 预告 OpenAI 本周将有重大发布【AI 早报 2026-09-16】",
+    "active": false,
+    "starting": false,
+    "sampling": false,
+    "ocrRunning": false,
+    "ocrAllowed": true,
+    "source": "置顶评论",
+    "total": 14,
+    "keep": 4,
+    "jumps": 1,
+    "ocrSummary": {
+      "blocks": 16,
+      "candidates": 3,
+      "elapsedMs": 774,
+      "attachSafe": false
+    },
+    "lastError": "",
+    "logs": [
+      {
+        "id": 1,
+        "time": "16:04:22",
+        "level": "log",
+        "text": "已就绪。点击“开启”，使用评论时间轴自动跳段。"
+      },
+      {
+        "id": 2,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "时间轴来源与全文 {\"text\":\"00:09  Sam Altman 预热本周重磅产品发布，或为 GPT-6 Sol\\n00:25  Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\\n00:44  阶跃星辰发布 StepAudio 3 系列五款语音大模型\\n01:00  TypeSafe AI 发布首个 System One 模型 Jev\\n01:12  OpenAI Codex for OSS 资助开放第二轮申请\\n01:26  Qoder 国际版付费用户每天可领 500 Credits\\n01:40  Antigravity 中 Gemini 3.8 Flash 请求报错，修复后将重置速率限制\\n01:50  谷歌Gemini Notebook推出新界面与学习功能\\n02:02  OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5\\n02:17  Anthropic 扩展 Claude for Small Business\\n02:24  字节发布飞书8.0 for Agent版本\\n02:36  Factory 完成 2 亿美元融资，估值达 50 亿美元\\n02:48  微信工作人员回应微信小微隐私争议\\n03:00  两款面向 AI Agent 的举报热线上线\",\"source\":\"pinned renderer.__data.content.message\",\"rpid\":\"317591418592\",\"author\":\"橘鸦Juya\",\"completeness\":\"页面评论数据原文，不受折叠显示影响\"}"
+      },
+      {
+        "id": 3,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":9,\"end\":25,\"keep\":true,\"title\":\"Sam Altman 预热本周重磅产品发布,或为 GPT-6 Sol\",\"keywords\":\"GPT\"}"
+      },
+      {
+        "id": 4,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":25,\"end\":44,\"keep\":false,\"title\":\"Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 5,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":44,\"end\":60,\"keep\":false,\"title\":\"阶跃星辰发布 StepAudio 3 系列五款语音大模型\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 6,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":60,\"end\":72,\"keep\":false,\"title\":\"TypeSafe AI 发布首个 System One 模型 Jev\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 7,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":72,\"end\":86,\"keep\":true,\"title\":\"OpenAI Codex for OSS 资助开放第二轮申请\",\"keywords\":\"OpenAI, Codex\"}"
+      },
+      {
+        "id": 8,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":86,\"end\":100,\"keep\":false,\"title\":\"Qoder 国际版付费用户每天可领 500 Credits\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 9,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":100,\"end\":110,\"keep\":false,\"title\":\"Antigravity 中 Gemini 3.8 Flash 请求报错,修复后将重置速率限制\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 10,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":110,\"end\":122,\"keep\":false,\"title\":\"谷歌Gemini Notebook推出新界面与学习功能\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 11,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":122,\"end\":137,\"keep\":true,\"title\":\"OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5\",\"keywords\":\"OpenAI, GPT, Codex\"}"
+      },
+      {
+        "id": 12,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":137,\"end\":144,\"keep\":true,\"title\":\"Anthropic 扩展 Claude for Small Business\",\"keywords\":\"Claude, Anthropic\"}"
+      },
+      {
+        "id": 13,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":144,\"end\":156,\"keep\":false,\"title\":\"字节发布飞书8.0 for Agent版本\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 14,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":156,\"end\":168,\"keep\":false,\"title\":\"Factory 完成 2 亿美元融资,估值达 50 亿美元\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 15,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":168,\"end\":180,\"keep\":false,\"title\":\"微信工作人员回应微信小微隐私争议\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 16,
+        "time": "16:05:10",
+        "level": "table",
+        "text": "{\"start\":180,\"end\":195,\"keep\":false,\"title\":\"两款面向 AI Agent 的举报热线上线\",\"keywords\":\"\"}"
+      },
+      {
+        "id": 17,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "实际播放器 \"<video>\""
+      },
+      {
+        "id": 18,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "START {\"duration\":195,\"segments\":14}"
+      },
+      {
+        "id": 19,
+        "time": "16:05:10",
+        "level": "log",
+        "text": "已启用。播放时进入未命中区间将自动跳转。JuyaDemo.stop() 停止；JuyaDemo.testSkip() 做一次真实边界实验。"
+      },
+      {
+        "id": 20,
+        "time": "16:05:11",
+        "level": "log",
+        "text": "边界实验开始 {\"from\":24.3,\"unwanted\":{\"start\":25,\"title\":\"Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\",\"keep\":false,\"keywords\":[],\"end\":44}}"
+      },
+      {
+        "id": 21,
+        "time": "16:05:12",
+        "level": "log",
+        "text": "SEEK_REQUEST {\"from\":25.023607,\"target\":72,\"title\":\"Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\",\"terminal\":false}"
+      },
+      {
+        "id": 22,
+        "time": "16:05:12",
+        "level": "log",
+        "text": "SEEK_CONFIRMED {\"from\":25.023607,\"target\":72,\"title\":\"Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型\",\"terminal\":false,\"actual\":72.000813}"
+      },
+      {
+        "id": 23,
+        "time": "16:05:12",
+        "level": "log",
+        "text": "STOP {\"currentTime\":72.13989}"
+      },
+      {
+        "id": 24,
+        "time": "16:05:12",
+        "level": "log",
+        "text": "已停止自动跳段。"
+      },
+      {
+        "id": 25,
+        "time": "16:05:13",
+        "level": "log",
+        "text": "OCR 实验开始：临时移动播放位置取两帧，随后恢复。识别结果仅供查看。"
+      },
+      {
+        "id": 26,
+        "time": "16:05:13",
+        "level": "log",
+        "text": "双帧稳定视觉实验 {\"video\":[640,360],\"roi\":{\"x\":0,\"y\":344,\"width\":640,\"height\":16},\"frameTimes\":[80,83.046875],\"restoredTime\":80,\"canvas\":\"<canvas>\"}"
+      },
+      {
+        "id": 27,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":0,\"start\":\"0.000\",\"end\":\"9.141\",\"terminal\":false,\"startPx\":0,\"endPx\":30}"
+      },
+      {
+        "id": 28,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":1,\"start\":\"9.141\",\"end\":\"25.289\",\"terminal\":false,\"startPx\":30,\"endPx\":83}"
+      },
+      {
+        "id": 29,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":2,\"start\":\"25.289\",\"end\":\"44.789\",\"terminal\":false,\"startPx\":83,\"endPx\":147}"
+      },
+      {
+        "id": 30,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":3,\"start\":\"44.789\",\"end\":\"60.633\",\"terminal\":false,\"startPx\":147,\"endPx\":199}"
+      },
+      {
+        "id": 31,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":4,\"start\":\"60.633\",\"end\":\"73.125\",\"terminal\":false,\"startPx\":199,\"endPx\":240}"
+      },
+      {
+        "id": 32,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":5,\"start\":\"73.125\",\"end\":\"86.227\",\"terminal\":false,\"startPx\":240,\"endPx\":283}"
+      },
+      {
+        "id": 33,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":6,\"start\":\"86.227\",\"end\":\"100.547\",\"terminal\":false,\"startPx\":283,\"endPx\":330}"
+      },
+      {
+        "id": 34,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":7,\"start\":\"100.547\",\"end\":\"110.906\",\"terminal\":false,\"startPx\":330,\"endPx\":364}"
+      },
+      {
+        "id": 35,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":8,\"start\":\"110.906\",\"end\":\"122.180\",\"terminal\":false,\"startPx\":364,\"endPx\":401}"
+      },
+      {
+        "id": 36,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":9,\"start\":\"122.180\",\"end\":\"138.023\",\"terminal\":false,\"startPx\":401,\"endPx\":453}"
+      },
+      {
+        "id": 37,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":10,\"start\":\"138.023\",\"end\":\"144.727\",\"terminal\":false,\"startPx\":453,\"endPx\":475}"
+      },
+      {
+        "id": 38,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":11,\"start\":\"144.727\",\"end\":\"157.219\",\"terminal\":false,\"startPx\":475,\"endPx\":516}"
+      },
+      {
+        "id": 39,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":12,\"start\":\"157.219\",\"end\":\"169.406\",\"terminal\":false,\"startPx\":516,\"endPx\":556}"
+      },
+      {
+        "id": 40,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":13,\"start\":\"169.406\",\"end\":\"180.375\",\"terminal\":false,\"startPx\":556,\"endPx\":592}"
+      },
+      {
+        "id": 41,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":14,\"start\":\"180.375\",\"end\":\"192.258\",\"terminal\":false,\"startPx\":592,\"endPx\":631}"
+      },
+      {
+        "id": 42,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"block\":15,\"start\":\"192.258\",\"end\":\"195.000\",\"terminal\":true,\"startPx\":631,\"endPx\":640}"
+      },
+      {
+        "id": 43,
+        "time": "16:05:13",
+        "level": "log",
+        "text": "人工时间轴未列出的视觉端块（仅比较时忽略，几何结果仍保留） [{\"value\":0,\"index\":0,\"reason\":\"人工时间轴省略片头\"},{\"value\":192.2578125,\"index\":15,\"reason\":\"人工时间轴省略“再见”尾块\"}]"
+      },
+      {
+        "id": 44,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":0,\"visual\":\"9.141\",\"reference\":\"9.000\",\"error\":\"0.141\",\"absoluteError\":\"0.141\"}"
+      },
+      {
+        "id": 45,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":1,\"visual\":\"25.289\",\"reference\":\"25.000\",\"error\":\"0.289\",\"absoluteError\":\"0.289\"}"
+      },
+      {
+        "id": 46,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":2,\"visual\":\"44.789\",\"reference\":\"44.000\",\"error\":\"0.789\",\"absoluteError\":\"0.789\"}"
+      },
+      {
+        "id": 47,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":3,\"visual\":\"60.633\",\"reference\":\"60.000\",\"error\":\"0.633\",\"absoluteError\":\"0.633\"}"
+      },
+      {
+        "id": 48,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":4,\"visual\":\"73.125\",\"reference\":\"72.000\",\"error\":\"1.125\",\"absoluteError\":\"1.125\"}"
+      },
+      {
+        "id": 49,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":5,\"visual\":\"86.227\",\"reference\":\"86.000\",\"error\":\"0.227\",\"absoluteError\":\"0.227\"}"
+      },
+      {
+        "id": 50,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":6,\"visual\":\"100.547\",\"reference\":\"100.000\",\"error\":\"0.547\",\"absoluteError\":\"0.547\"}"
+      },
+      {
+        "id": 51,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":7,\"visual\":\"110.906\",\"reference\":\"110.000\",\"error\":\"0.906\",\"absoluteError\":\"0.906\"}"
+      },
+      {
+        "id": 52,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":8,\"visual\":\"122.180\",\"reference\":\"122.000\",\"error\":\"0.180\",\"absoluteError\":\"0.180\"}"
+      },
+      {
+        "id": 53,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":9,\"visual\":\"138.023\",\"reference\":\"137.000\",\"error\":\"1.023\",\"absoluteError\":\"1.023\"}"
+      },
+      {
+        "id": 54,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":10,\"visual\":\"144.727\",\"reference\":\"144.000\",\"error\":\"0.727\",\"absoluteError\":\"0.727\"}"
+      },
+      {
+        "id": 55,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":11,\"visual\":\"157.219\",\"reference\":\"156.000\",\"error\":\"1.219\",\"absoluteError\":\"1.219\"}"
+      },
+      {
+        "id": 56,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":12,\"visual\":\"169.406\",\"reference\":\"168.000\",\"error\":\"1.406\",\"absoluteError\":\"1.406\"}"
+      },
+      {
+        "id": 57,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":13,\"visual\":\"180.375\",\"reference\":\"180.000\",\"error\":\"0.375\",\"absoluteError\":\"0.375\"}"
+      },
+      {
+        "id": 58,
+        "time": "16:05:13",
+        "level": "table",
+        "text": "{\"boundary\":14,\"visual\":\"195.000\",\"reference\":\"195.000\",\"error\":\"0.000\",\"absoluteError\":\"0.000\"}"
+      },
+      {
+        "id": 59,
+        "time": "16:05:13",
+        "level": "log",
+        "text": "稳定视觉/人工时间轴误差 {\"meanAbsoluteError\":0.6847098214285712,\"maxAbsoluteError\":1.40625}"
+      },
+      {
+        "id": 60,
+        "time": "16:05:15",
+        "level": "log",
+        "text": "OCR load {\"status\":\"loading tesseract core\",\"progress\":\"0%\"}"
+      },
+      {
+        "id": 61,
+        "time": "16:05:17",
+        "level": "log",
+        "text": "OCR load {\"status\":\"loading tesseract core\",\"progress\":\"100%\"}"
+      },
+      {
+        "id": 62,
+        "time": "16:05:17",
+        "level": "log",
+        "text": "OCR load {\"status\":\"initializing tesseract\",\"progress\":\"0%\"}"
+      },
+      {
+        "id": 63,
+        "time": "16:05:17",
+        "level": "log",
+        "text": "OCR load {\"status\":\"initializing tesseract\",\"progress\":\"100%\"}"
+      },
+      {
+        "id": 64,
+        "time": "16:05:17",
+        "level": "log",
+        "text": "OCR load {\"status\":\"loading language traineddata\",\"progress\":\"0%\"}"
+      },
+      {
+        "id": 65,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"loading language traineddata\",\"progress\":\"50%\"}"
+      },
+      {
+        "id": 66,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"loading language traineddata\",\"progress\":\"100%\"}"
+      },
+      {
+        "id": 67,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"initializing api\",\"progress\":\"0%\"}"
+      },
+      {
+        "id": 68,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"initializing api\",\"progress\":\"100%\"}"
+      },
+      {
+        "id": 69,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 1/16"
+      },
+      {
+        "id": 70,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"recognizing text\",\"progress\":\"0%\"}"
+      },
+      {
+        "id": 71,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR load {\"status\":\"recognizing text\",\"progress\":\"100%\"}"
+      },
+      {
+        "id": 72,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 2/16"
+      },
+      {
+        "id": 73,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 3/16"
+      },
+      {
+        "id": 74,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 4/16"
+      },
+      {
+        "id": 75,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 5/16"
+      },
+      {
+        "id": 76,
+        "time": "16:05:19",
+        "level": "log",
+        "text": "OCR block 6/16"
+      },
+      {
+        "id": 77,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 7/16"
+      },
+      {
+        "id": 78,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 8/16"
+      },
+      {
+        "id": 79,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 9/16"
+      },
+      {
+        "id": 80,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 10/16"
+      },
+      {
+        "id": 81,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 11/16"
+      },
+      {
+        "id": 82,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 12/16"
+      },
+      {
+        "id": 83,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 13/16"
+      },
+      {
+        "id": 84,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 14/16"
+      },
+      {
+        "id": 85,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 15/16"
+      },
+      {
+        "id": 86,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR block 16/16"
+      },
+      {
+        "id": 87,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":0,\"start\":\"0.000\",\"end\":\"9.141\",\"confidence\":\"83.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"Intro\"}"
+      },
+      {
+        "id": 88,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":1,\"start\":\"9.141\",\"end\":\"25.289\",\"confidence\":\"85.0\",\"keepCandidate\":true,\"match\":\"GPT:exact\",\"title\":\"GPT-6 Sol\"}"
+      },
+      {
+        "id": 89,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":2,\"start\":\"25.289\",\"end\":\"44.789\",\"confidence\":\"73.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"Gemini 38 Live\"}"
+      },
+      {
+        "id": 90,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":3,\"start\":\"44.789\",\"end\":\"60.633\",\"confidence\":\"90.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"StepAudio\"}"
+      },
+      {
+        "id": 91,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":4,\"start\":\"60.633\",\"end\":\"73.125\",\"confidence\":\"88.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"TypeSafe\"}"
+      },
+      {
+        "id": 92,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":5,\"start\":\"73.125\",\"end\":\"86.227\",\"confidence\":\"94.0\",\"keepCandidate\":true,\"match\":\"Codex:exact\",\"title\":\"Codex\"}"
+      },
+      {
+        "id": 93,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":6,\"start\":\"86.227\",\"end\":\"100.547\",\"confidence\":\"86.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"Qoder\"}"
+      },
+      {
+        "id": 94,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":7,\"start\":\"100.547\",\"end\":\"110.906\",\"confidence\":\"0.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"ergo,\"}"
+      },
+      {
+        "id": 95,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":8,\"start\":\"110.906\",\"end\":\"122.180\",\"confidence\":\"0.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"estena\"}"
+      },
+      {
+        "id": 96,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":9,\"start\":\"122.180\",\"end\":\"138.023\",\"confidence\":\"89.0\",\"keepCandidate\":true,\"match\":\"GPT:exact\",\"title\":\"ChatGPT\"}"
+      },
+      {
+        "id": 97,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":10,\"start\":\"138.023\",\"end\":\"144.727\",\"confidence\":\"0.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"\"}"
+      },
+      {
+        "id": 98,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":11,\"start\":\"144.727\",\"end\":\"157.219\",\"confidence\":\"27.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"tH\"}"
+      },
+      {
+        "id": 99,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":12,\"start\":\"157.219\",\"end\":\"169.406\",\"confidence\":\"43.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"Factory\"}"
+      },
+      {
+        "id": 100,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":13,\"start\":\"169.406\",\"end\":\"180.375\",\"confidence\":\"67.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"ha\"}"
+      },
+      {
+        "id": 101,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":14,\"start\":\"180.375\",\"end\":\"192.258\",\"confidence\":\"0.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"N—\\\"\"}"
+      },
+      {
+        "id": 102,
+        "time": "16:05:20",
+        "level": "table",
+        "text": "{\"block\":15,\"start\":\"192.258\",\"end\":\"195.000\",\"confidence\":\"69.0\",\"keepCandidate\":false,\"match\":\"\",\"title\":\"-\"}"
+      },
+      {
+        "id": 103,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR experiment complete {\"elapsedMs\":774,\"keepCandidates\":3,\"fuzzyCandidates\":0,\"attachSafe\":false}"
+      },
+      {
+        "id": 104,
+        "time": "16:05:20",
+        "level": "log",
+        "text": "OCR 实验完成，仅输出日志，未应用到自动跳段。 {\"blocks\":16,\"candidates\":3,\"elapsedMs\":774,\"attachSafe\":false}"
+      }
+    ]
+  },
+  "afterOcr": {
+    "time": 80,
+    "segments": [
+      {
+        "start": 9,
+        "title": "Sam Altman 预热本周重磅产品发布,或为 GPT-6 Sol",
+        "keep": true,
+        "keywords": [
+          "GPT"
+        ],
+        "end": 25
+      },
+      {
+        "start": 25,
+        "title": "Google 发布 Gemini 3.8 Live 与 3.8 Live Extended Thinking 语音模型",
+        "keep": false,
+        "keywords": [],
+        "end": 44
+      },
+      {
+        "start": 44,
+        "title": "阶跃星辰发布 StepAudio 3 系列五款语音大模型",
+        "keep": false,
+        "keywords": [],
+        "end": 60
+      },
+      {
+        "start": 60,
+        "title": "TypeSafe AI 发布首个 System One 模型 Jev",
+        "keep": false,
+        "keywords": [],
+        "end": 72
+      },
+      {
+        "start": 72,
+        "title": "OpenAI Codex for OSS 资助开放第二轮申请",
+        "keep": true,
+        "keywords": [
+          "OpenAI",
+          "Codex"
+        ],
+        "end": 86
+      },
+      {
+        "start": 86,
+        "title": "Qoder 国际版付费用户每天可领 500 Credits",
+        "keep": false,
+        "keywords": [],
+        "end": 100
+      },
+      {
+        "start": 100,
+        "title": "Antigravity 中 Gemini 3.8 Flash 请求报错,修复后将重置速率限制",
+        "keep": false,
+        "keywords": [],
+        "end": 110
+      },
+      {
+        "start": 110,
+        "title": "谷歌Gemini Notebook推出新界面与学习功能",
+        "keep": false,
+        "keywords": [],
+        "end": 122
+      },
+      {
+        "start": 122,
+        "title": "OpenAI 宣布 10 月 14 日起在 ChatGPT、ChatGPT Work 和 Codex 下线 GPT-5.5",
+        "keep": true,
+        "keywords": [
+          "OpenAI",
+          "GPT",
+          "Codex"
+        ],
+        "end": 137
+      },
+      {
+        "start": 137,
+        "title": "Anthropic 扩展 Claude for Small Business",
+        "keep": true,
+        "keywords": [
+          "Claude",
+          "Anthropic"
+        ],
+        "end": 144
+      },
+      {
+        "start": 144,
+        "title": "字节发布飞书8.0 for Agent版本",
+        "keep": false,
+        "keywords": [],
+        "end": 156
+      },
+      {
+        "start": 156,
+        "title": "Factory 完成 2 亿美元融资,估值达 50 亿美元",
+        "keep": false,
+        "keywords": [],
+        "end": 168
+      },
+      {
+        "start": 168,
+        "title": "微信工作人员回应微信小微隐私争议",
+        "keep": false,
+        "keywords": [],
+        "end": 180
+      },
+      {
+        "start": 180,
+        "title": "两款面向 AI Agent 的举报热线上线",
+        "keep": false,
+        "keywords": [],
+        "end": 195
+      }
+    ]
+  }
+}

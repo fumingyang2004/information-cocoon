@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Juya 资讯跳段</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header><div class="brand">J<span>·</span></div><div><h1>Juya 资讯跳段</h1><p>把时间留给关注的资讯</p></div><span id="status" class="badge">连接中</span></header>
+  <main>
+    <section class="video-card"><p class="eyebrow">当前视频</p><h2 id="video-title">正在读取页面…</h2><p id="source">请在橘鸦Juya的 B站视频页使用</p></section>
+    <label class="master-control" for="global-switch"><input id="global-switch" type="checkbox" role="switch" disabled><span class="switch-track" aria-hidden="true"></span><span><strong id="master-label">总开关已关闭</strong><small>开启后自动检查当前页及之后打开的视频</small></span></label>
+    <div class="stats"><span>资讯 <b id="total">—</b></span><span>保留 <b id="keep">—</b></span><span>已跳转 <b id="jumps">0</b></span></div>
+    <p id="error" role="alert" hidden></p>
+    <section class="keyword-card" aria-label="关键词配置">
+      <div class="keyword-head"><label for="keyword-group">关键词集合</label><select id="keyword-group" disabled></select></div>
+      <p id="keyword-preview">默认：OpenAI、GPT、Codex、Claude、Anthropic、DeepSeek</p>
+      <details id="keyword-editor"><summary>管理集合与关键词</summary>
+        <div class="keyword-form"><label for="keyword-name">集合名称</label><input id="keyword-name" maxlength="40" disabled>
+          <label for="keyword-words">关键词（一行一个，也可用逗号分隔）</label><textarea id="keyword-words" rows="4" disabled></textarea>
+          <div class="keyword-buttons"><button id="keyword-save" disabled>保存修改</button><button id="keyword-discard" disabled>撤销编辑</button><button id="keyword-add" disabled>新建集合</button><button id="keyword-delete" disabled>删除集合</button><button id="keyword-reset" disabled>恢复默认词</button></div>
+          <p>选择或保存后立即更新当前视频的保留片段；关闭弹窗后设置仍会保存。</p>
+        </div>
+      </details>
+    </section>
+    <section class="experiment"><div class="experiment-head"><label><input id="ocr-enabled" type="checkbox" disabled> OCR 实验</label><span class="pill">仅日志</span></div><p>识别视频底部资讯条，结果不用于跳段。取帧时会短暂移动播放位置，然后恢复。</p><button id="ocr-run" disabled>运行一次 OCR</button><span id="ocr-state"></span></section>
+    <section class="log-section"><div class="log-head"><h2>运行日志</h2><button id="clear" class="text-button" disabled>清空</button></div><div id="logs" tabindex="0" aria-label="运行日志"><p class="empty">开启后，时间轴与实际跳转会显示在这里。</p></div></section>
+  </main>
+  <footer>总开关状态会保存 · 刷新或切换视频后自动处理</footer>
+  <script src="keyword-config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

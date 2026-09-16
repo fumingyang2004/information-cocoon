@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Juya 资讯跳段",
+  "version": "0.3.1",
+  "description": "用橘鸦Juya的评论时间轴控制跳段，单独查看 OCR 实验日志。",
+  "permissions": ["scripting", "storage", "tabs", "webNavigation"],
+  "host_permissions": ["https://www.bilibili.com/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [{
+    "matches": ["https://www.bilibili.com/*"],
+    "js": ["autostart.js"],
+    "run_at": "document_idle"
+  }],
+  "action": {
+    "default_title": "Juya 资讯跳段",
+    "default_popup": "popup.html"
+  }
+}
