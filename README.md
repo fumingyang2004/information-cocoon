@@ -49,6 +49,8 @@ git clone https://github.com/fumingyang2004/information-cocoon.git
 
 ## 开发与验证
 
+项目由绝望的只剩下7%周额度的Astra大人开发。完全免费且开源。
+
 扩展是 Manifest V3，代码直接位于仓库根目录。`background.js` 与 `autostart.js` 管总开关和页面切换；`juya-demo.js` 读取时间轴并控制播放器；`page-bridge.js` 将状态和日志送到弹窗。
 
 ```powershell
