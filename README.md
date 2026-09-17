@@ -4,7 +4,7 @@
 
 ![Chrome](https://img.shields.io/badge/Chrome-Supported-brightgreen) ![Edge](https://img.shields.io/badge/Edge-Supported-blue) ![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange) ![License](https://img.shields.io/github/license/fumingyang2004/information-cocoon)
 
-**我 已 急 哭。**
+## 我 已 急 哭。
 
 信息茧房是一个面向 **橘鸦Juya** 与 **黑鸦Heya** 的B站AI早报&晚报制作的安全 **Edge/Chrome 扩展**。
 
@@ -25,8 +25,7 @@
 - **自动跳段**：默认关注 `OpenAI`、`GPT`、`Codex`、`Claude`、`Anthropic`、`DeepSeek`。你可根据自己的兴趣去新建、命名、编辑关键词集合；弹窗显示来源、保留数、跳转次数与日志。
 - **一个总开关管后续视频**：刷新、打开新视频或站内切换时自动检查，关闭则停止跳段。旁边的“手动 OCR 检查”只输出日志，不替换当前跳段结果。
 
-## 安装
-
+## 如何开始？
 
 ### 1. 下载项目
 
