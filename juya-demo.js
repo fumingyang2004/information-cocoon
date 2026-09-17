@@ -1,9 +1,12 @@
-/* Paste this entire file into the Edge console on a Bilibili video page. */
+/* Extension runtime; load creator-config.js before pasting this file manually. */
 (function (root) {
   'use strict';
   // The popup supplies a scoped logger; ordinary console injection still works.
   const console = root.__JUYA_DEMO_LOGGER__ || root.console;
   const KEYWORDS = ['OpenAI', 'GPT', 'Codex', 'Claude', 'Anthropic', 'DeepSeek'];
+  const CREATOR_CONFIG = typeof module !== 'undefined' && module.exports
+    ? require('./creator-config.js') : root.InformationCocoonCreators;
+  if (!CREATOR_CONFIG?.matchOwner) throw new Error('缺少 creator-config.js，无法识别受支持的 UP 主');
   let activeKeywords = [...KEYWORDS];
   const TAG = '[JuyaDemo]';
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,21 +27,9 @@
     });
     return Promise.race([source, deadline]).finally(() => clearTimeout(timer));
   }
-  // Measured on Juya's 16:9 AI-news layout. Values are normalized so the same
-  // crop works for the 1280x720 stream used in the experiment and a 4K stream.
-  const VISUAL_NAV = Object.freeze({
-    roi: Object.freeze({ x: 0, y: 688 / 720, width: 1, height: 32 / 720 }),
-    // The first rows contain the separators but not the title glyphs.
-    sampleTop: 0,
-    sampleBottom: 6 / 32,
-    minEdgeScore: 12,
-    coverageEdgeScore: 6,
-    minVerticalCoverage: 0.7,
-    mergeGapPx: 3,
-    playheadTolerancePx: 4,
-    // Juya's final "再见" block is intentionally only about 2-3 seconds.
-    minBlockDuration: 1
-  });
+  // Both supported creators use the same normalized 16:9 navigation geometry.
+  // Creator-specific OCR polarity is supplied by creator-config.js.
+  const VISUAL_NAV = CREATOR_CONFIG.creators.find(creator => creator.id === 'juya').visual;
   const OCR_EXPERIMENT = Object.freeze({
     // Pin the experiment so a future CDN release cannot silently change behavior.
     scriptUrl: 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js',
@@ -232,12 +223,25 @@
     return results;
   }
 
-  function juyaOwner(state) {
+  function supportedOwner(state) {
     const owner = state?.videoData?.owner;
-    if (owner?.name !== '橘鸦Juya' || String(owner.mid) !== '285286947') {
-      throw new Error('当前视频 UP 主不是橘鸦Juya，停止');
+    if (!CREATOR_CONFIG.matchOwner(owner)) {
+      throw new Error('当前视频 UP 主不是橘鸦Juya或黑鸦Heya，停止');
     }
     return owner;
+  }
+
+  // Backward-compatible export for existing console experiments and tests.
+  const juyaOwner = supportedOwner;
+
+  function creatorForOwner(owner) {
+    const creator = CREATOR_CONFIG.matchOwner(owner);
+    if (!creator) throw new Error('无法取得当前 UP 主的视觉配置');
+    return creator;
+  }
+
+  function creatorVisualOptions(owner, options = {}) {
+    return { ...creatorForOwner(owner).visual, ...options };
   }
 
   function replyTimelines(entries, owner, pinnedRpid, duration, options = {}) {
@@ -245,7 +249,7 @@
     for (const { data, source } of entries) {
       const rpid = String(data?.rpid_str ?? data?.rpid ?? '');
       const rootRpid = String(data?.root_str ?? data?.root ?? '');
-      if (!rpid || rootRpid !== pinnedRpid || data?.member?.uname !== '橘鸦Juya'
+      if (!rpid || rootRpid !== pinnedRpid || data?.member?.uname !== owner.name
         || String(data.member.mid) !== String(owner.mid)
         || String(data.mid_str ?? data.mid) !== String(owner.mid)
         || typeof data.content?.message !== 'string') continue;
@@ -391,7 +395,9 @@
     }).filter(Boolean);
     if (!parsed.length && pinned.length) {
       onStage('reading-replies', { reason, pinned: pinned.length });
-      console.log(TAG, '置顶正文没有有效时间轴，检查该置顶评论下橘鸦Juya本人的回复', { reason });
+      console.log(TAG, '置顶正文没有有效时间轴，检查该置顶评论下 UP 主本人的回复', {
+        reason, owner: owner.name, ownerMid: String(owner.mid)
+      });
       parsed = await readPinnedReplies(doc, pinned, duration, owner, valid, {
         reason: `${reason}-fallback`, maxAttempts: options.replyAttempts
       });
@@ -464,7 +470,7 @@
   }
 
   // Detect full-height separators only in the quiet band above the titles.
-  // This intentionally targets Juya's current fixed UI instead of attempting
+  // This intentionally targets the supported creators' fixed UI instead of attempting
   // general-purpose rectangle detection.
   function detectVisualBoundaries(imageData, duration, currentTime, options = {}) {
     if (!Number.isFinite(duration) || duration <= 0) throw new Error('视频总时长尚未就绪');
@@ -716,8 +722,10 @@
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
+    context.filter = options.ocrFilter ?? 'none';
     context.drawImage(blockCanvas, trimX, trimTop, sourceWidth, sourceHeight,
       paddingX, paddingY, targetWidth, targetHeight);
+    context.filter = 'none';
     return canvas;
   }
 
@@ -875,7 +883,7 @@
       && referenceStarts[0]?.value >= 1) {
       ignoredVisualBoundaries.push({ ...alignedVisual.shift(), reason: '人工时间轴省略片头' });
     }
-    // Juya's fixed 2-3 second "再见" block is visually real but commonly absent
+    // The fixed 2-3 second goodbye/outro block is visually real but commonly absent
     // from the manual timeline. Keep it in geometry; ignore it only for comparison.
     if (alignedVisual.length > referenceStarts.length && visualSegments.at(-1)?.terminal) {
       const terminalIndex = alignedVisual.findIndex(row => row.index === visualSegments.length - 1);
@@ -985,13 +993,14 @@
     return { stop, events, get active() { return active; } };
   }
 
-  const api = { KEYWORDS, VISUAL_NAV, OCR_EXPERIMENT, STARTUP_TIMING, withTimeout,
+  const api = { KEYWORDS, CREATOR_CONFIG, VISUAL_NAV, OCR_EXPERIMENT, STARTUP_TIMING, withTimeout,
     parseTimeline, skipTarget, deepAll, domText, pinnedCandidates, pinnedReadiness, readPinned, findVideo,
     captureNavigationStrip, detectVisualBoundaries, mergeVisualGeometries, cropNavigationBlocks, repairPlayheadInStrip, prepareOcrBlock,
     normalizeOcrText, editDistance, matchOcrKeywords, classifyOcrSegment, ocrFallbackSegments, sameVisualBoundaries,
     loadTesseract, compareTimelines,
     seekVideoFrame, attach,
-    juyaOwner, replyTimelines, readPinnedReplies, resolvePinnedTimeline, mergePinnedTimeline };
+    supportedOwner, juyaOwner, creatorForOwner, creatorVisualOptions,
+    replyTimelines, readPinnedReplies, resolvePinnedTimeline, mergePinnedTimeline };
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; return; }
   root.JuyaDemo?.stop?.();
   let controller;
@@ -1033,10 +1042,16 @@
     stop() { generation++; controller?.stop(); },
     // The extension checks readiness in the page world before starting.
     findVideo(doc = document) { return findVideo(doc); },
+    supportedOwner(state = root.__INITIAL_STATE__) { return supportedOwner(state); },
     inspect() {
       const renderers = deepAll(document, 'bili-comment-renderer');
+      const owner = root.__INITIAL_STATE__?.videoData?.owner;
+      const creator = CREATOR_CONFIG.matchOwner(owner);
       const snapshot = {
         url: location.href,
+        owner: owner ? { name: owner.name, mid: String(owner.mid ?? '') } : null,
+        creator: creator ? { id: creator.id, name: creator.name, mid: creator.mid,
+          ocrFilter: creator.visual.ocrFilter } : null,
         commentHosts: deepAll(document, 'bili-comments').length,
         renderers: renderers.length,
         candidates: pinnedCandidates(document).length,
@@ -1052,7 +1067,9 @@
       return snapshot;
     },
     visualExperiment(options = {}) {
-      juyaOwner(root.__INITIAL_STATE__);
+      const owner = supportedOwner(root.__INITIAL_STATE__);
+      const creator = creatorForOwner(owner);
+      options = creatorVisualOptions(owner, options);
       const experimentVideo = findVideo(document);
       const capture = captureNavigationStrip(experimentVideo, options.roi ?? VISUAL_NAV.roi);
       const geometry = detectVisualBoundaries(capture.imageData, experimentVideo.duration,
@@ -1060,7 +1077,8 @@
       const blockCanvases = cropNavigationBlocks(capture.canvas, geometry.boundariesPx);
       const referenceSegments = options.referenceSegments ?? report?.segments;
       const comparison = referenceSegments ? compareTimelines(geometry.segments, referenceSegments) : null;
-      console.log(TAG, '视觉实验 ROI', { video: [experimentVideo.videoWidth, experimentVideo.videoHeight],
+      console.log(TAG, '视觉实验 ROI', { creator: creator.id,
+        video: [experimentVideo.videoWidth, experimentVideo.videoHeight],
         roi: capture.source, canvas: capture.canvas, currentTime: experimentVideo.currentTime });
       console.table(geometry.segments.map(segment => ({ block: segment.index,
         start: segment.start.toFixed(3), end: segment.end.toFixed(3),
@@ -1079,10 +1097,13 @@
           maxAbsoluteError: comparison.maxAbsoluteError
         });
       } else if (comparison) console.warn(TAG, comparison.reason, comparison);
-      return { ...geometry, roi: capture.source, canvas: capture.canvas, blockCanvases, comparison };
+      return { ...geometry, creator: { id: creator.id, name: creator.name, mid: creator.mid },
+        roi: capture.source, canvas: capture.canvas, blockCanvases, comparison };
     },
     async visualExperimentStable(options = {}) {
-      juyaOwner(root.__INITIAL_STATE__);
+      const owner = supportedOwner(root.__INITIAL_STATE__);
+      const creator = creatorForOwner(owner);
+      options = creatorVisualOptions(owner, options);
       if (controller?.active) throw new Error('稳定视觉实验会临时移动播放位置，请先运行 JuyaDemo.stop()');
       const experimentVideo = findVideo(document);
       const originalTime = experimentVideo.currentTime;
@@ -1117,7 +1138,8 @@
         const blockCanvases = cropNavigationBlocks(firstCapture.canvas, stable.boundariesPx);
         const referenceSegments = options.referenceSegments ?? report?.segments;
         const comparison = referenceSegments ? compareTimelines(stable.segments, referenceSegments) : null;
-        result = { ...stable, roi: firstCapture.source, canvas: firstCapture.canvas,
+        result = { ...stable, creator: { id: creator.id, name: creator.name, mid: creator.mid },
+          roi: firstCapture.source, canvas: firstCapture.canvas,
           blockCanvases, frames, comparison, originalTime, secondTime };
       } finally {
         try {
@@ -1133,7 +1155,7 @@
         result.warnings.push(restoreWarning);
         result.reliable = false;
       }
-      console.log(TAG, '双帧稳定视觉实验', {
+      console.log(TAG, '双帧稳定视觉实验', { creator: creator.id,
         video: [experimentVideo.videoWidth, experimentVideo.videoHeight], roi: result.roi,
         frameTimes: result.frames.map(frame => frame.time), restoredTime: experimentVideo.currentTime,
         canvas: result.canvas
@@ -1158,7 +1180,9 @@
       return result;
     },
     async ocrExperiment(options = {}) {
-      juyaOwner(root.__INITIAL_STATE__);
+      const owner = supportedOwner(root.__INITIAL_STATE__);
+      const creator = creatorForOwner(owner);
+      options = creatorVisualOptions(owner, options);
       const startedAt = clock();
       const totalTimeoutMs = options.ocrTotalTimeoutMs ?? STARTUP_TIMING.ocrTotalTimeoutMs;
       const deadline = startedAt + totalTimeoutMs;
@@ -1168,10 +1192,11 @@
         return Math.max(1, Math.min(limit, left));
       };
       options.onStage?.('ocr-preparing', { totalTimeoutMs });
-      console.log(TAG, 'OCR 识别准备', { totalTimeoutMs, suppliedVisual: !!options.visualResult,
+      console.log(TAG, 'OCR 识别准备', { creator: creator.id, totalTimeoutMs,
+        ocrFilter: options.ocrFilter, suppliedVisual: !!options.visualResult,
         suppliedWorker: !!options.worker });
       const visual = options.visualResult
-        ?? await this.visualExperimentStable(options.visualOptions ?? options);
+        ?? await this.visualExperimentStable({ ...creator.visual, ...(options.visualOptions ?? options) });
       if (!visual?.blockCanvases?.length || visual.blockCanvases.length !== visual.segments.length) {
         throw new Error('Visual geometry did not produce a complete set of block canvases');
       }
@@ -1324,8 +1349,14 @@
       };
       report = null;
       try {
-        stage('initializing', { url: location.href, identity: page, keywords: [...activeKeywords] });
-        const owner = juyaOwner(root.__INITIAL_STATE__);
+        const owner = supportedOwner(root.__INITIAL_STATE__);
+        const creator = creatorForOwner(owner);
+        stage('initializing', { url: location.href, identity: page, keywords: [...activeKeywords],
+          creator: { id: creator.id, name: creator.name, mid: creator.mid },
+          visualProfile: { roi: creator.visual.roi, minEdgeScore: creator.visual.minEdgeScore,
+            coverageEdgeScore: creator.visual.coverageEdgeScore,
+            minVerticalCoverage: creator.visual.minVerticalCoverage,
+            ocrFilter: creator.visual.ocrFilter } });
         video = findVideo(document);
         const source = video.currentSrc;
         const valid = () => run === generation && page === identity()
@@ -1405,6 +1436,7 @@
         stage('attaching', { source: comment.sourceKind ?? comment.source,
           segments: segments.length, keep: segments.filter(segment => segment.keep).length });
         report = { url: location.href, title: document.title, capturedAt: new Date().toISOString(),
+          creator: { id: creator.id, name: creator.name, mid: creator.mid },
           duration: video.duration, keywords: [...activeKeywords], comment, segments };
         console.log(TAG, '时间轴来源与全文', comment);
         console.table(segments.map(s => ({ start: s.start, end: s.end, keep: s.keep,

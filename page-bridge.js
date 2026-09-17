@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  const BRIDGE_VERSION = '0.4.2';
+  const BRIDGE_VERSION = '0.5.0';
   const START_TIMEOUT_MS = root.__JUYA_START_TIMEOUT_MS__ ?? 120000;
   if (root.JuyaPanel?.version === BRIDGE_VERSION) return;
   const nativeConsole = root.console;
@@ -76,15 +76,18 @@
   }
   function supported() {
     const owner = root.__INITIAL_STATE__?.videoData?.owner;
-    return owner?.name === '橘鸦Juya' && String(owner.mid) === '285286947';
+    return !!root.InformationCocoonCreators?.matchOwner(owner);
   }
   function snapshot() {
     checkPage();
     const report = demo()?.report();
     const samePage = report?.url === location.href;
     const segments = samePage ? report.segments : [];
+    const creator = root.InformationCocoonCreators?.matchOwner(
+      root.__INITIAL_STATE__?.videoData?.owner);
     return {
       ready: !!demo(), version: BRIDGE_VERSION, supported: supported(),
+      creator: creator ? { id: creator.id, name: creator.name, mid: creator.mid } : null,
       url: location.href,
       title: root.__INITIAL_STATE__?.videoData?.title || document.title,
       active: samePage && !!report.active, starting, sampling, ocrRunning, ocrAllowed,
@@ -219,7 +222,7 @@
         lastError = '';
       }
       else {
-        if (!supported()) throw new Error('请打开橘鸦Juya的视频');
+        if (!supported()) throw new Error('请打开橘鸦Juya或黑鸦Heya的视频');
         if (action === 'start') void start();
         else if (action === 'ocr') void runOcr();
         else throw new Error('未知操作');

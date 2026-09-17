@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>信息茧房</title>
+  <title>信 息 茧 房</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-<body>
-  <header><img class="brand" src="imgs/Juya.png" alt="橘鸦Juya头像"><div><h1>信息茧房</h1><p>把时间留给关注的资讯</p></div><span id="status" class="badge">连接中</span></header>
+<body data-theme="default">
+  <header><img id="brand-image" class="brand" src="imgs/Logo.png" alt="信息茧房图标"><div><h1>信 息 茧 房</h1><p>把时间留给关注的资讯</p></div><span id="status" class="badge">连接中</span></header>
   <main>
-    <section class="video-card"><p class="eyebrow">当前视频</p><h2 id="video-title">正在读取页面…</h2><p id="source">请在橘鸦Juya的 B站视频页使用</p></section>
+    <section class="video-card"><p class="eyebrow">当前视频</p><h2 id="video-title">正在读取页面…</h2><p id="source">请在橘鸦Juya或黑鸦Heya的 B站视频页使用</p></section>
     <label class="master-control" for="global-switch"><input id="global-switch" type="checkbox" role="switch" disabled><span class="switch-track" aria-hidden="true"></span><span><strong id="master-label">总开关已关闭</strong><small>开启后自动检查当前页及之后打开的视频</small></span></label>
     <div class="stats"><span>资讯 <b id="total">—</b></span><span>保留 <b id="keep">—</b></span><span>已跳转 <b id="jumps">0</b></span></div>
     <p id="error" role="alert" hidden></p>
@@ -32,6 +32,7 @@
     <a class="source-link" href="https://github.com/fumingyang2004/information-cocoon"
       target="_blank" rel="noopener noreferrer">点这里访问源码，如果有用请您 Star 一下</a>
   </footer>
+  <script src="creator-config.js"></script>
   <script src="keyword-config.js"></script>
   <script src="popup.js"></script>
 </body>

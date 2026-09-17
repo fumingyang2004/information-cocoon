@@ -35,3 +35,94 @@ footer{display:flex;flex-direction:column;align-items:center;gap:5px}
 .master-control strong{display:block;font-size:12px;color:#344254}
 .master-control small{display:block;color:#83909e;font-size:10px;margin-top:2px}
 .log-actions{display:flex;align-items:center;gap:4px}
+
+/* Creator themes. The default palette intentionally preserves the original white UI. */
+body{
+  --theme-bg:#f6f7f9;
+  --theme-surface:#fff;
+  --theme-surface-alt:#eef2f7;
+  --theme-control:#fff;
+  --theme-control-disabled:#f7f8fa;
+  --theme-border:#e4e8ee;
+  --theme-divider:#edf0f4;
+  --theme-text:#202c3a;
+  --theme-strong:#344254;
+  --theme-muted:#7b8896;
+  --theme-subtle:#95a0ac;
+  --theme-accent:#c57738;
+  --theme-accent-hover:#ad652b;
+  --theme-accent-text:#fff;
+  --theme-switch-off:#cbd4df;
+  --theme-badge:#eef1f5;
+  --theme-badge-text:#677586;
+  background:var(--theme-bg);
+  color:var(--theme-text);
+  scrollbar-color:var(--theme-switch-off) var(--theme-bg);
+  transition:background-color .18s ease,color .18s ease;
+}
+body[data-theme="juya"]{
+  --theme-bg:#eef0e8;
+  --theme-surface:#fafbf7;
+  --theme-surface-alt:#e4e8df;
+  --theme-control:#f7f9f3;
+  --theme-control-disabled:#e8ebe3;
+  --theme-border:#d3d9cd;
+  --theme-divider:#dce1d6;
+  --theme-text:#29332c;
+  --theme-strong:#3c493d;
+  --theme-muted:#758075;
+  --theme-subtle:#8d978d;
+  --theme-accent:#879270;
+  --theme-accent-hover:#747f5e;
+  --theme-accent-text:#fff;
+  --theme-switch-off:#c3cabd;
+  --theme-badge:#e1e5dc;
+  --theme-badge-text:#667063;
+}
+body[data-theme="heya"]{
+  color-scheme:dark;
+  --theme-bg:#20293a;
+  --theme-surface:#283347;
+  --theme-surface-alt:#1b2434;
+  --theme-control:#222d40;
+  --theme-control-disabled:#1d2636;
+  --theme-border:#3b485f;
+  --theme-divider:#354157;
+  --theme-text:#eef2f8;
+  --theme-strong:#dce4f0;
+  --theme-muted:#aab6c8;
+  --theme-subtle:#8997ab;
+  --theme-accent:#667895;
+  --theme-accent-hover:#7588a7;
+  --theme-accent-text:#fff;
+  --theme-switch-off:#4b586d;
+  --theme-badge:#313d52;
+  --theme-badge-text:#c3cddd;
+}
+header,footer{background:var(--theme-surface);border-color:var(--theme-border)}
+header p,.master-control small{color:var(--theme-subtle)}
+.video-card,.keyword-card,.master-control{background:var(--theme-surface);border-color:var(--theme-border)}
+.experiment{background:var(--theme-surface-alt);border-color:var(--theme-border)}
+.eyebrow,.stats,.keyword-card p,.keyword-form label,.experiment p,#source,#ocr-state{color:var(--theme-muted)}
+.stats b,.master-control strong{color:var(--theme-strong)}
+.badge{background:var(--theme-badge);color:var(--theme-badge-text)}
+button,.keyword-head select,.keyword-form input,.keyword-form textarea{
+  background:var(--theme-control);color:var(--theme-strong);border-color:var(--theme-border)
+}
+button:hover:not(:disabled){background:var(--theme-surface-alt)}
+.actions .primary{background:var(--theme-accent);border-color:var(--theme-accent);color:var(--theme-accent-text)}
+.actions .primary:hover:not(:disabled){background:var(--theme-accent-hover);border-color:var(--theme-accent-hover)}
+button:focus-visible,input:focus-visible,.source-link:focus-visible{outline-color:var(--theme-accent)}
+input{accent-color:var(--theme-accent)}
+.keyword-form input:disabled,.keyword-form textarea:disabled{background:var(--theme-control-disabled)}
+.keyword-card details,.entry{border-color:var(--theme-divider)}
+.keyword-card summary,.source-link{color:var(--theme-accent)}
+.switch-track{background:var(--theme-switch-off)}
+.master-control input:checked+.switch-track{background:var(--theme-accent)}
+.master-control input:focus-visible+.switch-track{outline-color:var(--theme-accent)}
+.pill{background:var(--theme-badge);color:var(--theme-badge-text)}
+#logs{background:var(--theme-control);border-color:var(--theme-border);color:var(--theme-text)}
+.empty,.entry .time,.text-button,footer{color:var(--theme-subtle)}
+body[data-theme="heya"] .badge.active{background:#274b43;color:#aee4d3}
+body[data-theme="heya"] .badge.busy{background:#544628;color:#f1d790}
+body[data-theme="heya"] #error{background:#4a2d36;color:#ffc5cf}

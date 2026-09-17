@@ -1,7 +1,7 @@
 /* The persisted master switch owns automatic startup across tabs and reloads. */
-importScripts('keyword-config.js');
+importScripts('keyword-config.js', 'creator-config.js');
 const SWITCH_KEY = 'juyaGlobalEnabled';
-const VERSION = '0.4.2';
+const VERSION = '0.5.0';
 const START_STALE_MS = 130000;
 const VIDEO_URL = /^https:\/\/www\.bilibili\.com\/video\/BV[\w]+/i;
 const inFlight = new Map();
@@ -13,11 +13,13 @@ async function pageCall(tabId, method, ...args) {
   return result[0]?.result ?? null;
 }
 async function pageProbe(tabId) {
-  const result = await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func: () => {
+  const owners = InformationCocoonCreators.publicOwners();
+  const result = await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func: supportedOwners => {
     const owner = window.__INITIAL_STATE__?.videoData?.owner;
-    return { ownerKnown: !!owner, supported: owner?.name === '橘鸦Juya' && String(owner.mid) === '285286947',
-      url: location.href };
-  } });
+    const creator = supportedOwners.find(item => item.name === owner?.name
+      && item.mid === String(owner?.mid));
+    return { ownerKnown: !!owner, supported: !!creator, creator: creator ?? null, url: location.href };
+  }, args: [owners] });
   return result[0]?.result;
 }
 async function videoReady(tabId) {
@@ -47,7 +49,7 @@ async function ensureTab(tabId, retry = false) {
       if (!probe.supported) return { status: 'unsupported' };
       if (state?.version !== VERSION || !state.ready) {
         await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN',
-          files: ['page-bridge.js', 'juya-demo.js'] });
+          files: ['creator-config.js', 'page-bridge.js', 'juya-demo.js'] });
         state = await pageCall(tabId, 'finishInstall');
       }
       if (!state || state.url !== probe.url) return { status: 'waiting' };

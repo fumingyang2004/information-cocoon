@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "信息茧房",
-  "version": "0.4.2",
-  "description": "为橘鸦Juya的 AI 早报按关键词跳过不感兴趣的资讯，评论索引缺席时尝试 OCR。",
-  "icons": { "240": "imgs/Juya.png" },
+  "version": "0.5.0",
+  "description": "为橘鸦Juya与黑鸦Heya的 AI 早报按关键词跳过不感兴趣的资讯，评论索引缺席时尝试 OCR。",
+  "icons": { "240": "imgs/Logo.png" },
   "permissions": ["scripting", "storage", "tabs", "webNavigation"],
   "host_permissions": ["https://www.bilibili.com/*"],
   "background": { "service_worker": "background.js" },
@@ -13,7 +13,7 @@
     "run_at": "document_idle"
   }],
   "action": {
-    "default_icon": "imgs/Juya.png",
+    "default_icon": "imgs/Logo.png",
     "default_title": "信息茧房",
     "default_popup": "popup.html"
   }

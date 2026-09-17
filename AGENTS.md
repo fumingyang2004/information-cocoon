@@ -4,12 +4,12 @@ Read this file completely before inspecting, changing, or testing this repositor
 
 ## Project purpose
 
-This repository contains a Manifest V3 Edge/Chrome extension for Bilibili videos published by Juya. It keeps chapters whose titles match the user's selected keywords and skips the remaining chapters.
+This repository contains a Manifest V3 Edge/Chrome extension for Bilibili AI-news videos published by Juya and Heya. It keeps chapters whose titles match the user's selected keywords and skips the remaining chapters.
 
 The production priority order is:
 
 1. Read a timeline from the pinned comment.
-2. Read or merge a timeline from Juya's replies under that pinned comment.
+2. Read or merge a timeline from the video's verified owner replies under that pinned comment.
 3. Only when no usable comment timeline exists, use the burned-in bottom navigation strip for visual geometry and OCR fallback.
 
 Do not weaken or bypass the comment-timeline path while changing the OCR fallback.
@@ -19,6 +19,7 @@ Do not weaken or bypass the comment-timeline path while changing the OCR fallbac
 The browser extension runtime consists of:
 
 - `manifest.json`
+- `creator-config.js`
 - `background.js`
 - `autostart.js`
 - `page-bridge.js`
@@ -54,7 +55,8 @@ If `node` is not on `PATH`, the local VS Code Electron executable can be used as
 ## Implementation constraints
 
 - Preserve the existing working comment-to-timeline-to-seek path.
-- Keep the visual fallback targeted to Juya's fixed video layout; do not turn it into general-purpose video understanding without explicit approval.
+- Keep the visual fallback targeted to the fixed Juya and Heya video layouts; do not turn it into general-purpose video understanding without explicit approval.
+- Keep supported owner names, UIDs, and creator-specific visual/OCR settings centralized in `creator-config.js`.
 - Prefer browser-native APIs and lightweight processing. Do not add heavy OCR, computer-vision, ASR, LLM, or server dependencies without explicit approval.
 - Treat visual geometry as unsafe unless repeated samples agree and all existing coverage checks pass.
 - In the current OCR policy, a chapter is kept only when its OCR text matches an active keyword; every unmatched OCR chapter is skipped regardless of confidence, blank text, language, or title length.

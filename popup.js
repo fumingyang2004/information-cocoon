@@ -1,7 +1,9 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const config = globalThis.JuyaKeywordConfig;
-const BRIDGE_VERSION = '0.4.2';
+const creators = globalThis.InformationCocoonCreators;
+const BRIDGE_VERSION = '0.5.0';
+const DEFAULT_BRAND_IMAGE = 'imgs/Logo.png';
 const PHASE_LABELS = Object.freeze({
   idle: '待命', starting: '启动', initializing: '初始化',
   'waiting-comments': '等待评论正文', 'reading-replies': '读取作者回复',
@@ -61,6 +63,13 @@ function renderMaster() {
   $('global-switch').disabled = switching;
   $('master-label').textContent = globalEnabled ? '总开关已开启' : '总开关已关闭';
 }
+function renderBrand(creator) {
+  const profile = creators.creators.find(item => item.id === creator?.id);
+  const image = $('brand-image');
+  image.src = profile?.avatar ?? DEFAULT_BRAND_IMAGE;
+  image.alt = profile ? `${profile.name}头像` : '信息茧房图标';
+  document.body.dataset.theme = profile?.id ?? 'default';
+}
 function renderSettings() {
   const group = config.selected(settings);
   const selector = $('keyword-group');
@@ -111,6 +120,7 @@ async function commitSettings(next) {
 function render(state) {
   if (!state) return;
   lastState = state;
+  renderBrand(state.creator);
   renderMaster();
   $('video-title').textContent = state.title || '未读取到视频';
   $('video-title').title = state.title || '';
@@ -122,10 +132,11 @@ function render(state) {
   $('status').className = `badge ${state.sampling || state.starting ? 'busy' : globalEnabled && state.active ? 'active' : ''}`;
   $('source').textContent = state.starting
     ? `当前阶段：${phaseLabel} · 已持续 ${phaseSeconds} 秒`
-    : state.source ? `时间轴来源：${state.source}` : state.supported
+    : state.source ? `${state.creator?.name ? `${state.creator.name} · ` : ''}时间轴来源：${state.source}` : state.supported
     ? (state.lastError ? '自动处理未完成；请查看下方错误'
-      : globalEnabled ? '正在检查评论时间轴' : '打开总开关后自动读取评论时间轴')
-    : '当前页面未识别为橘鸦Juya视频；总开关会继续待命';
+      : globalEnabled ? `${state.creator?.name ?? '当前 UP 主'} · 正在检查评论时间轴`
+        : `${state.creator?.name ?? '当前 UP 主'} · 打开总开关后自动读取评论时间轴`)
+    : '当前页面未识别为受支持的 UP 主视频；总开关会继续待命';
   $('total').textContent = state.total || '—';
   $('keep').textContent = state.total ? state.keep : '—';
   $('jumps').textContent = state.jumps;
@@ -159,9 +170,9 @@ function render(state) {
     lastLogKey = key;
   }
 }
-function renderUnavailable(title, reason) {
+function renderUnavailable(title, reason, creator = null) {
   connected = false;
-  render({ title, ready: false, supported: false, active: false, total: 0, keep: 0,
+  render({ title, ready: false, supported: !!creator, creator, active: false, total: 0, keep: 0,
     jumps: 0, ocrAllowed: false, ocrRunning: false, phase: 'idle', phaseElapsedMs: 0, logs: [] });
   $('source').textContent = reason;
 }
@@ -184,23 +195,26 @@ async function refresh() {
       connected = true;
       render(state);
     } else {
-      const [probe] = await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func: () => {
+      const [probe] = await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN',
+        func: supportedOwners => {
         const owner = window.__INITIAL_STATE__?.videoData?.owner;
-        return { known: !!owner, supported: owner?.name === '橘鸦Juya' && String(owner.mid) === '285286947' };
-      } });
+        const creator = supportedOwners.find(item => item.name === owner?.name
+          && item.mid === String(owner?.mid));
+        return { known: !!owner, supported: !!creator, creator: creator ?? null };
+      }, args: [creators.publicOwners()] });
       const owner = probe?.result;
       if (!globalEnabled && owner?.supported) {
         // Prepare the separate OCR experiment without enabling production skipping.
         await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN',
-          files: ['page-bridge.js', 'juya-demo.js'] });
+          files: ['creator-config.js', 'page-bridge.js', 'juya-demo.js'] });
         await pageCall('finishInstall');
         await pageCall('command', 'keywords', config.selected(settings).keywords);
         const prepared = await pageCall('snapshot');
         connected = !!prepared?.ready;
         render(prepared);
       } else renderUnavailable(tab.title || '视频页加载中', owner?.known && !owner.supported
-        ? '当前视频 UP 主不是橘鸦Juya；总开关继续待命'
-        : '正在检查页面；符合条件时会自动启用');
+        ? '当前视频 UP 主不是橘鸦Juya或黑鸦Heya；总开关继续待命'
+        : '正在检查页面；符合条件时会自动启用', owner?.creator);
     }
   } catch { renderUnavailable('页面加载中', '正在等待视频页，符合条件时会自动启用'); }
   finally { fetching = false; }
@@ -231,6 +245,7 @@ $('copy-logs').addEventListener('click', async () => {
     tab: { id: tab?.id ?? null, url: tab?.url ?? '', title: tab?.title ?? '' },
     globalEnabled,
     state: {
+      creator: lastState.creator ?? null,
       ready: lastState.ready, supported: lastState.supported, active: lastState.active,
       starting: lastState.starting, sampling: lastState.sampling, ocrRunning: lastState.ocrRunning,
       phase: lastState.phase, phaseDetails: lastState.phaseDetails,
