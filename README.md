@@ -66,3 +66,5 @@ node --test ../information-cocoon-tests/*.test.cjs
 ## 开源协议
 
 本项目以 [MIT License](LICENSE) 开源。
+
+![信息茧房](imgs/Title.png)
