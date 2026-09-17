@@ -2,8 +2,6 @@
 
 ![信息茧房](imgs/Title2.png)
 
-![Chrome](https://img.shields.io/badge/Chrome-Supported-brightgreen) ![Edge](https://img.shields.io/badge/Edge-Supported-blue) ![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange) ![License](https://img.shields.io/github/license/fumingyang2004/information-cocoon)
-
 **我 已 急 哭。**
 
 信息茧房是一个面向 **橘鸦Juya** 与 **黑鸦Heya** 的B站AI早报&晚报制作的安全 **Edge/Chrome 扩展**。
@@ -49,7 +47,7 @@ git clone https://github.com/fumingyang2004/information-cocoon.git
 
 1. 点击工具栏上的扩展图标，选择关键词集合，打开**总开关**。
 2. 打开橘鸦Juya或黑鸦Heya的一期 B站AI早报&晚报，让视频开始播放。
-3. 等待插件自动下滑加载置顶评论区的播放索引，你也可以自己下滑到他们的置顶评论区。成功时，插件右上角会显示绿色的**本页已启用**。
+3. 等待插件自动下滑加载置顶评论区的播放索引，你也可以自己下滑。成功时，插件右上角会显示绿色的本页已启用。
 4. 也支持Chrome浏览器。插件安装方法一致。
 
 ![界面](imgs/image2.png)
