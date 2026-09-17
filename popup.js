@@ -68,6 +68,9 @@ function renderBrand(creator) {
   const image = $('brand-image');
   image.src = profile?.avatar ?? DEFAULT_BRAND_IMAGE;
   image.alt = profile ? `${profile.name}头像` : '信息茧房图标';
+  $('brand-title').textContent = profile?.id === 'juya' ? '信 息 茧 房'
+    : profile?.id === 'heya' ? '核 弹 提 纯'
+      : '信 息 茧 房 （ 核 弹 提 纯 ）';
   document.body.dataset.theme = profile?.id ?? 'default';
 }
 function renderSettings() {

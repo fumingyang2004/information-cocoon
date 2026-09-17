@@ -126,3 +126,11 @@ input{accent-color:var(--theme-accent)}
 body[data-theme="heya"] .badge.active{background:#274b43;color:#aee4d3}
 body[data-theme="heya"] .badge.busy{background:#544628;color:#f1d790}
 body[data-theme="heya"] #error{background:#4a2d36;color:#ffc5cf}
+.source-link{
+  display:inline-flex;align-items:center;padding:6px 11px;border:1px solid var(--theme-border);
+  border-radius:999px;background:var(--theme-surface-alt);font-weight:600;line-height:1.2;
+  box-shadow:0 1px 2px #0001;transition:background .15s,border-color .15s,transform .15s
+}
+.source-link:hover{
+  background:var(--theme-badge);border-color:var(--theme-accent);text-decoration:none;transform:translateY(-1px)
+}

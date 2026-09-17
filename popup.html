@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body data-theme="default">
-  <header><img id="brand-image" class="brand" src="imgs/Logo.png" alt="信息茧房图标"><div><h1>信 息 茧 房</h1><p>把时间留给关注的资讯</p></div><span id="status" class="badge">连接中</span></header>
+  <header><img id="brand-image" class="brand" src="imgs/Logo.png" alt="信息茧房图标"><div><h1 id="brand-title">信 息 茧 房 （ 核 弹 提 纯 ）</h1><p>把时间留给关注的资讯</p></div><span id="status" class="badge">连接中</span></header>
   <main>
     <section class="video-card"><p class="eyebrow">当前视频</p><h2 id="video-title">正在读取页面…</h2><p id="source">请在橘鸦Juya或黑鸦Heya的 B站视频页使用</p></section>
     <label class="master-control" for="global-switch"><input id="global-switch" type="checkbox" role="switch" disabled><span class="switch-track" aria-hidden="true"></span><span><strong id="master-label">总开关已关闭</strong><small>开启后自动检查当前页及之后打开的视频</small></span></label>
@@ -24,13 +24,13 @@
         </div>
       </details>
     </section>
-    <section class="experiment"><div class="experiment-head"><label><input id="ocr-enabled" type="checkbox" disabled> 手动 OCR 检查</label><span class="pill">仅日志</span></div><p>评论没有时间轴时，总开关会自动尝试 OCR 降级。此处手动检查只输出日志；取帧时会短暂移动播放位置，然后恢复。</p><button id="ocr-run" disabled>运行一次 OCR</button><span id="ocr-state"></span></section>
+    <section class="experiment" hidden><div class="experiment-head"><label><input id="ocr-enabled" type="checkbox" disabled> 手动 OCR 检查</label><span class="pill">仅日志</span></div><p>评论没有时间轴时，总开关会自动尝试 OCR 降级。此处手动检查只输出日志；取帧时会短暂移动播放位置，然后恢复。</p><button id="ocr-run" disabled>运行一次 OCR</button><span id="ocr-state"></span></section>
     <section class="log-section"><div class="log-head"><h2>运行日志</h2><div class="log-actions"><button id="copy-logs" class="text-button" disabled>复制诊断日志</button><button id="clear" class="text-button" disabled>清空</button></div></div><div id="logs" tabindex="0" aria-label="运行日志"><p class="empty">开启后，时间轴与实际跳转会显示在这里。</p></div></section>
   </main>
   <footer>
     <span>总开关状态会保存 · 刷新或切换视频后自动处理</span>
     <a class="source-link" href="https://github.com/fumingyang2004/information-cocoon"
-      target="_blank" rel="noopener noreferrer">点这里访问源码，如果有用请您 Star 一下</a>
+      target="_blank" rel="noopener noreferrer">★ 访问源码 · 如果有用，请 Star 一下</a>
   </footer>
   <script src="creator-config.js"></script>
   <script src="keyword-config.js"></script>
