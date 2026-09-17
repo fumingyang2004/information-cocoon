@@ -27,11 +27,17 @@
 
 ## 如何开始？
 
-### 1. 下载项目
+### 1. 下载正式版
 
-在 GitHub 仓库页面点击绿色的 **Code** 按钮，选择 **Download ZIP**，下载后解压。
+最简单的方式是直接下载已经打包好的正式版：
 
-熟悉 Git 的用户也可以运行：
+**[点击下载 information-cocoon-v0.5.0.zip](https://github.com/fumingyang2004/information-cocoon/releases/download/v0.5.0/information-cocoon-v0.5.0.zip)**
+
+也可以进入 [GitHub Releases](https://github.com/fumingyang2004/information-cocoon/releases/latest)，在 **Assets** 中选择名字为 `information-cocoon-v0.5.0.zip` 的文件。
+
+> 请下载上面的扩展安装包，不要误选 GitHub 自动生成的 `Source code (zip)`。
+
+下载完成后解压 ZIP，你会得到一个 `information-cocoon` 文件夹。熟悉 Git、希望直接查看最新源码的用户也可以运行：
 
 ```powershell
 git clone https://github.com/fumingyang2004/information-cocoon.git
@@ -42,14 +48,19 @@ git clone https://github.com/fumingyang2004/information-cocoon.git
 1. Edge 用户打开 `edge://extensions`；Chrome 用户打开 `chrome://extensions`。
 2. 打开页面上的 **开发人员模式**。
 3. 点击 **加载解压缩的扩展**。
-4. 选择**解压后**的 `information-cocoon` 文件夹。
+4. 选择刚才**解压后**的 `information-cocoon` 文件夹。不要直接选择 ZIP 文件。
+5. 浏览器工具栏出现信息茧房图标，就代表安装完成了。必要时可以在扩展菜单中把它固定到工具栏。
 
-### 3. 开始
+### 3. 开始核弹提纯
 
-1. 点击工具栏上的扩展图标，选择关键词集合，打开**总开关**。
-2. 打开橘鸦Juya或黑鸦Heya的一期 B站AI早报&晚报，让视频开始播放。
-3. 等待插件自动下滑加载置顶评论区的播放索引，你也可以自己下滑到他们的置顶评论区。成功时，插件右上角会显示绿色的**本页已启用**。
-4. 也支持Chrome浏览器。插件安装方法一致。
+1. 打开橘鸦 Juya 或黑鸦 Heya 的一期 B站 AI 早报 / 晚报，让视频先播放几秒。
+2. 点击工具栏上的信息茧房图标，选择或编辑自己关心的关键词集合。
+3. 打开 **总开关**。插件会自动尝试读取置顶评论及 UP 主回复里的播放索引；你也可以手动滚动到评论区帮助页面完成加载。
+4. 插件右上角显示绿色的 **本页已启用** 后，正常播放视频即可。进入未命中关键词的章节时，它会自动跳到下一条保留内容。
+
+### 更新旧版本
+
+下载并解压新的正式版。想保留原有关键词设置，建议用新版本文件覆盖浏览器当前加载的 `information-cocoon` 文件夹，再到扩展管理页面点击 **重新加载**。如果改为加载一个全新的文件夹，浏览器可能把它视为另一份解压缩扩展，需要重新配置关键词。
 
 ![界面](imgs/image2.png)
 
